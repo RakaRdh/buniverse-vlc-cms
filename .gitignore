@@ -1,0 +1,38 @@
+# CodeIgniter 4 .gitignore
+
+# Environment & Config
+.env
+
+# Dependencies
+/node_modules/
+/vendor/
+
+# User-uploaded content
+writable/uploads/*
+!writable/uploads/index.html
+!writable/uploads/.gitkeep
+
+# Logs
+writable/logs/*
+!writable/logs/index.html
+!writable/logs/.gitkeep
+
+# Cache
+writable/cache/*
+!writable/cache/index.html
+!writable/cache/.gitkeep
+
+# Debugbar
+writable/debugbar/*
+!writable/debugbar/index.html
+!writable/debugbar/.gitkeep
+
+# Sessions
+writable/session/*
+!writable/session/index.html
+!writable/session/.gitkeep
+
+# OS generated files
+.DS_Store
+Thumbs.db
+.phpunit.result.cache
