@@ -10,16 +10,38 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     
-    <!-- Static Compiled Tailwind CSS -->
-    <link rel="stylesheet" href="/css/tailwind.min.css">
+    <!-- Tailwind CSS CDN (Full utility coverage, zero missing classes) -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    fontFamily: { sans: ['Inter', 'sans-serif'] },
+                    colors: {
+                        brand: {
+                            DEFAULT: '#C41E24',
+                            hover: '#A8151A',
+                            dark: '#8E1418',
+                            light: '#FEE2E2',
+                        },
+                        accent: {
+                            DEFAULT: '#F5841F',
+                            hover: '#E07212',
+                        }
+                    }
+                }
+            }
+        }
+    </script>
 
-    <!-- Design System CSS Tokens -->
-    <link rel="stylesheet" href="/css/vlc_cms.css">
+    <!-- CMS Custom Stylesheet -->
+    <link rel="stylesheet" href="/css/style.css">
 
     <!-- Icons: Lucide -->
     <script src="https://cdn.jsdelivr.net/npm/lucide@0.468.0/dist/umd/lucide.min.js"></script>
 
-    <!-- Theme script -->
+    <!-- Anti-FOUC Theme Script -->
     <script>
         (function() {
             try {
@@ -33,15 +55,15 @@
         })();
     </script>
 </head>
-<body class="bg-background text-foreground font-sans antialiased min-h-screen">
+<body class="bg-slate-50 dark:bg-slate-900 text-slate-800 dark:text-slate-100 font-sans antialiased min-h-screen">
 
-<div class="flex min-h-screen w-full bg-background">
+<div class="flex min-h-screen w-full">
     <!-- Desktop Sidebar -->
     <?= $this->include('layouts/sidebar') ?>
 
     <!-- Mobile Drawer Overlay & Sheet -->
     <div id="mobileDrawerOverlay" class="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm hidden lg:hidden" onclick="toggleMobileNav(false)"></div>
-    <div id="mobileDrawerSheet" class="fixed inset-y-0 left-0 z-50 w-[280px] bg-sidebar border-r border-sidebar-border -translate-x-full transition-transform duration-200 ease-out lg:hidden">
+    <div id="mobileDrawerSheet" class="fixed inset-y-0 left-0 z-50 w-[280px] bg-[#C41E24] text-white -translate-x-full transition-transform duration-200 ease-out lg:hidden shadow-2xl">
         <?= $this->include('layouts/sidebar_content', ['isMobile' => true]) ?>
     </div>
 
@@ -54,7 +76,7 @@
         <main class="mx-auto w-full max-w-[1440px] flex-1 px-4 py-6 sm:px-6 sm:py-8">
             <!-- Flash Notifications -->
             <?php if (session()->getFlashdata('success')): ?>
-                <div class="mb-6 flex items-center justify-between rounded-lg border border-emerald-500/30 bg-emerald-500/10 px-4 py-3 text-sm text-emerald-600 dark:text-emerald-400">
+                <div class="mb-6 flex items-center justify-between rounded-lg border border-emerald-500/30 bg-emerald-500/10 px-4 py-3 text-sm text-emerald-700 dark:text-emerald-400">
                     <div class="flex items-center gap-2.5 font-medium">
                         <i data-lucide="check-circle-2" class="size-4.5 shrink-0"></i>
                         <span><?= esc(session()->getFlashdata('success')) ?></span>
@@ -66,7 +88,7 @@
             <?php endif; ?>
 
             <?php if (session()->getFlashdata('error')): ?>
-                <div class="mb-6 flex items-center justify-between rounded-lg border border-red-500/30 bg-red-500/10 px-4 py-3 text-sm text-red-600 dark:text-red-400">
+                <div class="mb-6 flex items-center justify-between rounded-lg border border-red-500/30 bg-red-500/10 px-4 py-3 text-sm text-red-700 dark:text-red-400">
                     <div class="flex items-center gap-2.5 font-medium">
                         <i data-lucide="alert-circle" class="size-4.5 shrink-0"></i>
                         <span><?= esc(session()->getFlashdata('error')) ?></span>
