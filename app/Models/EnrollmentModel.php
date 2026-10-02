@@ -1,0 +1,59 @@
+<?php
+
+namespace App\Models;
+
+use CodeIgniter\Model;
+
+class EnrollmentModel extends Model
+{
+    protected $table = 'tblprogram_enrollment';
+    protected $primaryKey = 'id';
+    protected $useAutoIncrement = true;
+    protected $returnType = 'array';
+    protected $useSoftDeletes = false;
+    protected $allowedFields = [
+        'member_id',
+        'program_id',
+        'status',
+        'enrolled_at',
+        'completed_at',
+        'progress',
+        'notes'
+    ];
+    protected $useTimestamps = true;
+    protected $createdField  = 'created_at';
+    protected $updatedField  = 'updated_at';
+
+    public function getEnrollments($programId = null, $status = null, $keyword = null)
+    {
+        $builder = $this->db->table('tblprogram_enrollment e')
+            ->select('e.*, 
+                      m.fullname as member_name, 
+                      m.email as member_email, 
+                      p.phone as member_phone,
+                      pr.name as program_name, 
+                      pr.slug as program_slug')
+            ->join('tblmember m', 'm.memberID = e.member_id', 'left')
+            ->join('tblprofile p', 'p.member_id = e.member_id', 'left')
+            ->join('tblprogram pr', 'pr.id = e.program_id', 'left')
+            ->orderBy('e.id', 'DESC');
+
+        if (!empty($programId)) {
+            $builder->where('e.program_id', $programId);
+        }
+
+        if (!empty($status)) {
+            $builder->where('e.status', $status);
+        }
+
+        if (!empty($keyword)) {
+            $builder->groupStart()
+                ->like('m.fullname', $keyword)
+                ->orLike('m.email', $keyword)
+                ->orLike('pr.name', $keyword)
+                ->groupEnd();
+        }
+
+        return $builder->get()->getResultArray();
+    }
+}

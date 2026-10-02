@@ -1,0 +1,233 @@
+/* ==========================================================================
+   VLC Modern Learning Center CMS Design System
+   Brand Palette:
+     Primary: #C41E24 (Crimson Red)
+     Primary Dark: #8E1418
+     Accent: #F5841F (Amber Orange)
+   ========================================================================== */
+
+@layer base {
+  :root {
+    --background: 210 20% 98%;
+    --foreground: 215 28% 17%;
+
+    --card: 0 0% 100%;
+    --card-foreground: 215 28% 17%;
+
+    --popover: 0 0% 100%;
+    --popover-foreground: 215 28% 17%;
+
+    /* VLC Crimson Red #C41E24 */
+    --primary: 358 73% 44%;
+    --primary-foreground: 0 0% 100%;
+
+    --secondary: 210 40% 96.1%;
+    --secondary-foreground: 222.2 47.4% 11.2%;
+
+    --muted: 210 20% 95%;
+    --muted-foreground: 217 19% 45%;
+
+    /* VLC Amber Orange #F5841F */
+    --accent: 28 92% 54%;
+    --accent-foreground: 0 0% 100%;
+
+    --destructive: 0 72% 51%;
+    --destructive-foreground: 0 0% 100%;
+
+    --success: 152 76% 40%;
+    --warning: 36 92% 50%;
+
+    --border: 214 20% 91%;
+    --input: 214 20% 91%;
+    --ring: 358 73% 44%;
+
+    --radius: 0.625rem;
+
+    /* VLC Sidebar: Elegant Deep Maroon / Burgundy */
+    --sidebar-background: 355 45% 12%;
+    --sidebar-foreground: 214 20% 91%;
+    --sidebar-primary: 358 75% 55%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 355 35% 18%;
+    --sidebar-accent-foreground: 0 0% 100%;
+    --sidebar-border: 355 25% 20%;
+    --sidebar-ring: 28 92% 54%;
+  }
+
+  .dark {
+    --background: 222 47% 8%;
+    --foreground: 210 40% 96%;
+
+    --card: 222 40% 12%;
+    --card-foreground: 210 40% 96%;
+
+    --popover: 222 38% 15%;
+    --popover-foreground: 210 40% 96%;
+
+    --primary: 358 85% 62%;
+    --primary-foreground: 0 0% 100%;
+
+    --secondary: 217 33% 17%;
+    --secondary-foreground: 210 40% 96%;
+
+    --muted: 217 33% 16%;
+    --muted-foreground: 215 20% 65%;
+
+    --accent: 28 92% 54%;
+    --accent-foreground: 0 0% 100%;
+
+    --destructive: 0 84% 60%;
+    --destructive-foreground: 0 0% 100%;
+
+    --success: 142 69% 58%;
+    --warning: 38 92% 50%;
+
+    --border: 217 30% 19%;
+    --input: 217 30% 19%;
+    --ring: 358 85% 62%;
+
+    --sidebar-background: 355 50% 8%;
+    --sidebar-foreground: 214 20% 91%;
+    --sidebar-primary: 358 85% 62%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 355 40% 14%;
+    --sidebar-accent-foreground: 210 40% 96%;
+    --sidebar-border: 355 30% 15%;
+    --sidebar-ring: 28 92% 54%;
+  }
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html {
+  font-size: 100%;
+  color-scheme: light;
+}
+
+html.dark {
+  color-scheme: dark;
+}
+
+body {
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  font-size: 0.9375rem;
+  line-height: 1.5;
+}
+
+main table, 
+main .surface-card table {
+  font-size: 0.8125rem;
+}
+
+::placeholder,
+::-webkit-input-placeholder,
+::-moz-placeholder,
+:-ms-input-placeholder {
+  font-size: 0.8125rem !important;
+  opacity: 0.55 !important;
+  color: hsl(var(--muted-foreground)) !important;
+}
+
+.surface-card {
+  background-color: hsl(var(--card));
+  color: hsl(var(--card-foreground));
+  border: 1px solid hsl(var(--border));
+  border-radius: 0.75rem;
+  box-shadow: 0 1px 3px rgba(16, 24, 40, 0.05), 0 1px 2px rgba(16, 24, 40, 0.03);
+}
+
+.custom-sidebar-scroll {
+  scrollbar-width: thin;
+  scrollbar-color: hsl(var(--sidebar-border)) transparent;
+}
+
+.custom-sidebar-scroll::-webkit-scrollbar {
+  width: 4px;
+}
+
+.custom-sidebar-scroll::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.custom-sidebar-scroll::-webkit-scrollbar-thumb {
+  background: hsl(var(--sidebar-border));
+  border-radius: 9999px;
+}
+
+.custom-sidebar-scroll::-webkit-scrollbar-thumb:hover {
+  background: hsl(var(--sidebar-primary));
+}
+
+.sidebar-collapsed,
+html.sidebar-pre-collapsed #desktopSidebar {
+  width: 76px !important;
+}
+
+html.sidebar-pre-collapsed #mainWorkspaceWrapper {
+  padding-left: 76px !important;
+}
+
+.sidebar-collapsed .nav-label,
+.sidebar-collapsed .group-label,
+.sidebar-collapsed .brand-desc,
+.sidebar-collapsed .brand-title,
+html.sidebar-pre-collapsed #desktopSidebar .nav-label,
+html.sidebar-pre-collapsed #desktopSidebar .group-label,
+html.sidebar-pre-collapsed #desktopSidebar .brand-desc,
+html.sidebar-pre-collapsed #desktopSidebar .brand-title {
+  display: none !important;
+}
+
+.sidebar-collapsed .nav-item-link,
+html.sidebar-pre-collapsed #desktopSidebar .nav-item-link {
+  justify-content: center !important;
+  padding-left: 0 !important;
+  padding-right: 0 !important;
+}
+
+/* Toast container */
+#toast-container {
+  position: fixed;
+  bottom: 24px;
+  right: 24px;
+  z-index: 100;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.toast-item {
+  background-color: hsl(var(--card));
+  color: hsl(var(--card-foreground));
+  border: 1px solid hsl(var(--border));
+  padding: 12px 18px;
+  border-radius: 0.5rem;
+  font-size: 13.5px;
+  box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1);
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  animation: toastSlideIn 0.2s ease-out;
+}
+
+@keyframes toastSlideIn {
+  from { transform: translateY(16px); opacity: 0; }
+  to { transform: translateY(0); opacity: 1; }
+}
+
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+.custom-spinner {
+  width: 2rem;
+  height: 2rem;
+  border: 3px solid rgba(196, 30, 36, 0.2);
+  border-top-color: #C41E24;
+  border-radius: 50%;
+  animation: spin 0.75s linear infinite;
+}
