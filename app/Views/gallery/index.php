@@ -64,11 +64,11 @@
 </div>
 
 <!-- Modal Form Galeri -->
-<div id="galleryModal" class="fixed inset-0 z-50 hidden bg-black/50 backdrop-blur-xs flex items-center justify-center p-4">
-    <div class="bg-card border border-border rounded-2xl max-w-md w-full p-6 shadow-2xl space-y-4">
-        <div class="flex items-center justify-between pb-3 border-b border-border">
-            <h2 id="galleryModalTitle" class="text-sm font-bold text-foreground">Tambah Gambar Galeri</h2>
-            <button type="button" onclick="closeGalleryModal()" class="text-muted-foreground hover:text-foreground">
+<div id="galleryModal" class="fixed inset-0 z-50 hidden bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4">
+    <div class="bg-white dark:bg-slate-850 bg-card border border-slate-200 dark:border-slate-700 rounded-2xl max-w-md w-full p-6 shadow-2xl space-y-4 text-slate-800 dark:text-slate-100 relative z-10" style="background-color: var(--card-bg, #ffffff);">
+        <div class="flex items-center justify-between pb-3 border-b border-slate-200 dark:border-slate-700">
+            <h2 id="galleryModalTitle" class="text-sm font-bold text-slate-900 dark:text-white">Tambah Gambar Galeri</h2>
+            <button type="button" onclick="closeGalleryModal()" class="text-slate-400 hover:text-slate-600 dark:hover:text-white p-1 rounded-md transition-colors">
                 <i data-lucide="x" class="size-4"></i>
             </button>
         </div>
@@ -78,42 +78,60 @@
             <input type="hidden" id="galleryId" name="id" value="">
 
             <div>
-                <label for="galleryTitle" class="block text-xs font-semibold text-foreground mb-1">Judul / Label</label>
+                <label for="galleryTitle" class="block text-xs font-semibold text-slate-700 dark:text-slate-200 mb-1">Judul / Label</label>
                 <input type="text" id="galleryTitle" name="title" required
-                       class="w-full px-3 py-2 text-xs rounded-lg border border-border bg-background text-foreground focus:outline-none focus:ring-1 focus:ring-[#C41E24]"
+                       class="w-full px-3.5 py-2 text-xs rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 text-slate-800 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-[#C41E24]"
                        placeholder="Contoh: Suasana Pelatihan 1">
             </div>
 
+            <?php
+            /**
+             * PANDUAN PENYIMPANAN & PENGGUNAAN GAMBAR (IMAGE ASSETS GUIDE):
+             * -------------------------------------------------------------
+             * 1. Lokasi Folder Aset:
+             *    - File gambar statis disimpan di folder publik frontend: `Frontend/public/img/`
+             *    - Contoh nama file: `gallery-1.webp`, `gallery-2.webp`, `img-course-1.webp`, dll.
+             * 2. Format Path di Form CMS:
+             *    - Gunakan path absolut web dimulai dengan slash `/`, contoh: `/img/nama-gambar.webp`
+             *    - Path ini otomatis dapat diakses oleh Frontend (port 8080) maupun CMS (port 8082).
+             * 3. Dukungan Format:
+             *    - Disarankan menggunakan format `.webp` untuk kompresi ringan dan pemuatan instan.
+             *    - Mendukung format `.png`, `.jpg`, `.jpeg`, atau URL gambar CDN luar (https://...).
+             * 4. Dimensi Ideal Galeri:
+             *    - Landscape / persegi membulat (aspek rasio 4:3 atau 16:9, min. resolusi 800x600 px).
+             */
+            ?>
             <div>
-                <label for="galleryImage" class="block text-xs font-semibold text-foreground mb-1">Path / URL Gambar</label>
+                <label for="galleryImage" class="block text-xs font-semibold text-slate-700 dark:text-slate-200 mb-1">Path / URL Gambar <span class="text-red-500">*</span></label>
                 <input type="text" id="galleryImage" name="image" required
-                       class="w-full px-3 py-2 text-xs rounded-lg border border-border bg-background text-foreground focus:outline-none focus:ring-1 focus:ring-[#C41E24]"
+                       class="w-full px-3.5 py-2 text-xs rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 text-slate-800 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-[#C41E24]"
                        placeholder="Contoh: /img/gallery-1.webp">
                 <div class="flex gap-1.5 mt-2">
-                    <button type="button" onclick="document.getElementById('galleryImage').value='/img/gallery-1.webp'" class="text-[10px] px-2 py-0.5 rounded bg-muted text-muted-foreground hover:text-foreground">/img/gallery-1.webp</button>
-                    <button type="button" onclick="document.getElementById('galleryImage').value='/img/gallery-2.webp'" class="text-[10px] px-2 py-0.5 rounded bg-muted text-muted-foreground hover:text-foreground">/img/gallery-2.webp</button>
-                    <button type="button" onclick="document.getElementById('galleryImage').value='/img/gallery-3.webp'" class="text-[10px] px-2 py-0.5 rounded bg-muted text-muted-foreground hover:text-foreground">/img/gallery-3.webp</button>
+                    <button type="button" onclick="document.getElementById('galleryImage').value='/img/gallery-1.webp'" class="text-[10px] px-2.5 py-1 rounded bg-slate-100 dark:bg-slate-700 text-slate-700 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-600 font-medium transition">/img/gallery-1.webp</button>
+                    <button type="button" onclick="document.getElementById('galleryImage').value='/img/gallery-2.webp'" class="text-[10px] px-2.5 py-1 rounded bg-slate-100 dark:bg-slate-700 text-slate-700 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-600 font-medium transition">/img/gallery-2.webp</button>
+                    <button type="button" onclick="document.getElementById('galleryImage').value='/img/gallery-3.webp'" class="text-[10px] px-2.5 py-1 rounded bg-slate-100 dark:bg-slate-700 text-slate-700 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-600 font-medium transition">/img/gallery-3.webp</button>
                 </div>
+                <p class="text-[10px] text-slate-400 dark:text-slate-500 mt-1.5">File gambar diletakkan pada folder <code>Frontend/public/img/</code> atau gunakan link URL penuh.</p>
             </div>
 
             <div class="grid grid-cols-2 gap-3">
                 <div>
-                    <label for="gallerySort" class="block text-xs font-semibold text-foreground mb-1">Urutan Tampil</label>
+                    <label for="gallerySort" class="block text-xs font-semibold text-slate-700 dark:text-slate-200 mb-1">Urutan Tampil</label>
                     <input type="number" id="gallerySort" name="sort_order" value="1"
-                           class="w-full px-3 py-2 text-xs rounded-lg border border-border bg-background text-foreground focus:outline-none focus:ring-1 focus:ring-[#C41E24]">
+                           class="w-full px-3.5 py-2 text-xs rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 text-slate-800 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-[#C41E24]">
                 </div>
                 <div class="flex items-center pt-5">
                     <label class="inline-flex items-center gap-2 cursor-pointer">
                         <input type="checkbox" id="galleryActive" name="is_active" value="1" checked
-                               class="rounded border-border text-[#C41E24] focus:ring-[#C41E24]">
-                        <span class="text-xs text-foreground font-medium">Status Aktif</span>
+                               class="size-4 rounded border-slate-300 dark:border-slate-600 text-[#C41E24] focus:ring-[#C41E24]">
+                        <span class="text-xs text-slate-700 dark:text-slate-200 font-medium">Status Aktif</span>
                     </label>
                 </div>
             </div>
 
-            <div class="pt-3 border-t border-border flex items-center justify-end gap-2">
-                <button type="button" onclick="closeGalleryModal()" class="px-3.5 py-1.5 text-xs rounded-lg border border-border hover:bg-muted text-foreground">Batal</button>
-                <button type="submit" class="px-4 py-1.5 text-xs rounded-lg bg-[#C41E24] hover:bg-[#A8151A] text-white font-semibold shadow-xs">Simpan</button>
+            <div class="pt-3 border-t border-slate-200 dark:border-slate-700 flex items-center justify-end gap-2">
+                <button type="button" onclick="closeGalleryModal()" class="px-4 py-2 text-xs font-medium rounded-lg border border-slate-300 dark:border-slate-600 hover:bg-slate-100 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 transition-colors">Batal</button>
+                <button type="submit" class="px-5 py-2 text-xs rounded-lg bg-[#C41E24] hover:bg-[#A8151A] text-white font-semibold shadow-xs transition-colors">Simpan</button>
             </div>
         </form>
     </div>

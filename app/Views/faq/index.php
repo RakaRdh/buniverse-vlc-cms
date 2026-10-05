@@ -78,11 +78,11 @@
 </div>
 
 <!-- Modal Form FAQ -->
-<div id="faqModal" class="fixed inset-0 z-50 hidden bg-black/50 backdrop-blur-xs flex items-center justify-center p-4">
-    <div class="bg-card border border-border rounded-2xl max-w-lg w-full p-6 shadow-2xl space-y-4">
-        <div class="flex items-center justify-between pb-3 border-b border-border">
-            <h2 id="faqModalTitle" class="text-sm font-bold text-foreground">Tambah FAQ Baru</h2>
-            <button type="button" onclick="closeFaqModal()" class="text-muted-foreground hover:text-foreground">
+<div id="faqModal" class="fixed inset-0 z-50 hidden bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4">
+    <div class="bg-white dark:bg-slate-850 bg-card border border-slate-200 dark:border-slate-700 rounded-2xl max-w-lg w-full p-6 shadow-2xl space-y-4 text-slate-800 dark:text-slate-100 relative z-10" style="background-color: var(--card-bg, #ffffff);">
+        <div class="flex items-center justify-between pb-3 border-b border-slate-200 dark:border-slate-700">
+            <h2 id="faqModalTitle" class="text-sm font-bold text-slate-900 dark:text-white">Tambah FAQ Baru</h2>
+            <button type="button" onclick="closeFaqModal()" class="text-slate-400 hover:text-slate-600 dark:hover:text-white p-1 rounded-md transition-colors">
                 <i data-lucide="x" class="size-4"></i>
             </button>
         </div>
@@ -92,37 +92,37 @@
             <input type="hidden" id="faqId" name="id" value="">
 
             <div>
-                <label for="faqQuestion" class="block text-xs font-semibold text-foreground mb-1">Pertanyaan <span class="text-red-500">*</span></label>
+                <label for="faqQuestion" class="block text-xs font-semibold text-slate-700 dark:text-slate-200 mb-1">Pertanyaan <span class="text-red-500">*</span></label>
                 <input type="text" id="faqQuestion" name="question" required
-                       class="w-full px-3 py-2 text-xs rounded-lg border border-border bg-background text-foreground focus:outline-none focus:ring-1 focus:ring-[#C41E24]"
+                       class="w-full px-3.5 py-2 text-xs rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 text-slate-800 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-[#C41E24]"
                        placeholder="Contoh: Berapa lama training akan berlangsung?">
             </div>
 
             <div>
-                <label for="faqAnswer" class="block text-xs font-semibold text-foreground mb-1">Jawaban <span class="text-red-500">*</span></label>
+                <label for="faqAnswer" class="block text-xs font-semibold text-slate-700 dark:text-slate-200 mb-1">Jawaban <span class="text-red-500">*</span></label>
                 <textarea id="faqAnswer" name="answer" rows="4" required
-                          class="w-full px-3 py-2 text-xs rounded-lg border border-border bg-background text-foreground focus:outline-none focus:ring-1 focus:ring-[#C41E24]"
+                          class="w-full px-3.5 py-2 text-xs rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 text-slate-800 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-[#C41E24]"
                           placeholder="Penjelasan jawaban detail..."></textarea>
             </div>
 
             <div class="grid grid-cols-2 gap-3">
                 <div>
-                    <label for="faqSort" class="block text-xs font-semibold text-foreground mb-1">Urutan</label>
+                    <label for="faqSort" class="block text-xs font-semibold text-slate-700 dark:text-slate-200 mb-1">Urutan</label>
                     <input type="number" id="faqSort" name="sort_order" value="1"
-                           class="w-full px-3 py-2 text-xs rounded-lg border border-border bg-background text-foreground focus:outline-none focus:ring-1 focus:ring-[#C41E24]">
+                           class="w-full px-3.5 py-2 text-xs rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 text-slate-800 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-[#C41E24]">
                 </div>
                 <div class="flex items-center pt-5">
                     <label class="inline-flex items-center gap-2 cursor-pointer">
                         <input type="checkbox" id="faqActive" name="is_active" value="1" checked
-                               class="rounded border-border text-[#C41E24] focus:ring-[#C41E24]">
-                        <span class="text-xs text-foreground font-medium">Status Aktif</span>
+                               class="size-4 rounded border-slate-300 dark:border-slate-600 text-[#C41E24] focus:ring-[#C41E24]">
+                        <span class="text-xs text-slate-700 dark:text-slate-200 font-medium">Status Aktif</span>
                     </label>
                 </div>
             </div>
 
-            <div class="pt-3 border-t border-border flex items-center justify-end gap-2">
-                <button type="button" onclick="closeFaqModal()" class="px-3.5 py-1.5 text-xs rounded-lg border border-border hover:bg-muted text-foreground">Batal</button>
-                <button type="submit" class="px-4 py-1.5 text-xs rounded-lg bg-[#C41E24] hover:bg-[#A8151A] text-white font-semibold shadow-xs">Simpan</button>
+            <div class="pt-3 border-t border-slate-200 dark:border-slate-700 flex items-center justify-end gap-2">
+                <button type="button" onclick="closeFaqModal()" class="px-4 py-2 text-xs font-medium rounded-lg border border-slate-300 dark:border-slate-600 hover:bg-slate-100 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 transition-colors">Batal</button>
+                <button type="submit" class="px-5 py-2 text-xs rounded-lg bg-[#C41E24] hover:bg-[#A8151A] text-white font-semibold shadow-xs transition-colors">Simpan</button>
             </div>
         </form>
     </div>

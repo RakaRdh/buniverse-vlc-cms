@@ -33,7 +33,16 @@
                        placeholder="Contoh: Financial Modeling & Corporate Valuation">
             </div>
 
-            <!-- Thumbnail Image Selector & Live Preview -->
+            <?php
+            /**
+             * PANDUAN PENGELOLAAN THUMBNAIL PROGRAM:
+             * -------------------------------------------------------------
+             * 1. Lokasi Aset: File gambar disimpan di `Frontend/public/img/` (misal: `img-course-1.webp`, `img-course-2.webp`).
+             * 2. Format Input: Masukkan path web diawali slash (contoh: `/img/nama-file.webp`) atau URL gambar CDN.
+             * 3. Rekomendasi Resolusi: Rasio 16:9 atau 4:3 (contoh: 1280x720 atau 800x450 px) dalam format .webp untuk kecepatan maksimal.
+             * 4. Live Preview: Kotak di samping kiri akan otomatis menguji dan menampilkan gambar begitu path diinput.
+             */
+            ?>
             <div class="rounded-xl border border-border p-4 bg-muted/20 space-y-3">
                 <label class="block text-xs font-semibold text-foreground">Gambar Thumbnail Program <span class="text-red-500">*</span></label>
                 

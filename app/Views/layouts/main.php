@@ -28,6 +28,16 @@
                         accent: {
                             DEFAULT: '#F5841F',
                             hover: '#E07212',
+                        },
+                        card: {
+                            DEFAULT: 'var(--card-bg, #FFFFFF)',
+                        },
+                        border: 'var(--border-color, #E2E8F0)',
+                        background: 'var(--bg-color, #F8FAFC)',
+                        foreground: 'var(--text-main, #1E293B)',
+                        muted: {
+                            DEFAULT: 'var(--border-color, #F1F5F9)',
+                            foreground: 'var(--text-muted, #64748B)'
                         }
                     }
                 }
@@ -74,26 +84,26 @@
 
         <!-- Content Area -->
         <main class="mx-auto w-full max-w-[1440px] flex-1 px-4 py-6 sm:px-6 sm:py-8">
-            <!-- Flash Notifications -->
+            <!-- Flash Notifications (Auto-dismissing) -->
             <?php if (session()->getFlashdata('success')): ?>
-                <div class="mb-6 flex items-center justify-between rounded-lg border border-emerald-500/30 bg-emerald-500/10 px-4 py-3 text-sm text-emerald-700 dark:text-emerald-400">
+                <div class="flash-alert mb-6 flex items-center justify-between rounded-lg border border-emerald-500/30 bg-emerald-500/10 px-4 py-3 text-sm text-emerald-700 dark:text-emerald-400 transition-all duration-500">
                     <div class="flex items-center gap-2.5 font-medium">
                         <i data-lucide="check-circle-2" class="size-4.5 shrink-0"></i>
                         <span><?= esc(session()->getFlashdata('success')) ?></span>
                     </div>
-                    <button class="opacity-70 hover:opacity-100" onclick="this.parentElement.remove()">
+                    <button type="button" class="opacity-70 hover:opacity-100 p-1 transition-opacity cursor-pointer" onclick="dismissFlashAlert(this.closest('.flash-alert'))">
                         <i data-lucide="x" class="size-4"></i>
                     </button>
                 </div>
             <?php endif; ?>
 
             <?php if (session()->getFlashdata('error')): ?>
-                <div class="mb-6 flex items-center justify-between rounded-lg border border-red-500/30 bg-red-500/10 px-4 py-3 text-sm text-red-700 dark:text-red-400">
+                <div class="flash-alert mb-6 flex items-center justify-between rounded-lg border border-red-500/30 bg-red-500/10 px-4 py-3 text-sm text-red-700 dark:text-red-400 transition-all duration-500">
                     <div class="flex items-center gap-2.5 font-medium">
                         <i data-lucide="alert-circle" class="size-4.5 shrink-0"></i>
                         <span><?= esc(session()->getFlashdata('error')) ?></span>
                     </div>
-                    <button class="opacity-70 hover:opacity-100" onclick="this.parentElement.remove()">
+                    <button type="button" class="opacity-70 hover:opacity-100 p-1 transition-opacity cursor-pointer" onclick="dismissFlashAlert(this.closest('.flash-alert'))">
                         <i data-lucide="x" class="size-4"></i>
                     </button>
                 </div>
@@ -105,12 +115,29 @@
 </div>
 
 <script>
-    // Initialize Lucide icons
+    function dismissFlashAlert(el) {
+        if (!el) return;
+        el.style.opacity = '0';
+        el.style.transform = 'translateY(-6px)';
+        setTimeout(() => {
+            if (el.parentNode) el.remove();
+        }, 500);
+    }
+
+    // Initialize Lucide icons and auto-dismiss alerts
     document.addEventListener("DOMContentLoaded", function() {
         if (window.lucide) {
             lucide.createIcons();
         }
         updateThemeIcons();
+
+        // Auto dismiss flash alerts after 3.5 seconds
+        const alerts = document.querySelectorAll('.flash-alert');
+        alerts.forEach(alert => {
+            setTimeout(() => {
+                dismissFlashAlert(alert);
+            }, 3500);
+        });
     });
 
     function toggleMobileNav(open) {
