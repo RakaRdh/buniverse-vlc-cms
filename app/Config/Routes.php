@@ -49,4 +49,12 @@ $routes->group('', ['filter' => 'adminauth'], static function ($routes) {
 
     // Members
     $routes->get('members', 'Members::index');
+    $routes->get('members/detail/(:num)', 'Members::detail/$1');
+
+    // Activity Log (Superadmin only inside controller)
+    $routes->get('activity-log', 'ActivityLog::index');
+
+    // Admin Profile & Password Change
+    $routes->get('profile', 'Profile::index');
+    $routes->post('profile/update-password', 'Profile::updatePassword');
 });

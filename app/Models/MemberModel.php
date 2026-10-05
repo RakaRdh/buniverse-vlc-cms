@@ -28,7 +28,7 @@ class MemberModel extends Model
     {
         $builder = $this->db->table('tblmember m')
             ->select('m.memberID, m.fullname, m.email, m.status, m.signupdate, m.lastlogin,
-                      p.phone, p.university, p.major, p.job, p.company,
+                      p.phone, p.address,
                       COUNT(e.id) as enrolled_count')
             ->join('tblprofile p', 'p.member_id = m.memberID', 'left')
             ->join('tblprogram_enrollment e', 'e.member_id = m.memberID', 'left')
@@ -48,5 +48,16 @@ class MemberModel extends Model
         }
 
         return $builder->get()->getResultArray();
+    }
+
+    public function getMemberDetail($memberId)
+    {
+        return $this->db->table('tblmember m')
+            ->select('m.memberID, m.fullname, m.email, m.status, m.signupdate, m.lastlogin, m.reg_source, m.reg_media,
+                      p.phone, p.address, p.created_at as profile_created_at, p.updated_at as profile_updated_at')
+            ->join('tblprofile p', 'p.member_id = m.memberID', 'left')
+            ->where('m.memberID', $memberId)
+            ->get()
+            ->getRowArray();
     }
 }

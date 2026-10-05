@@ -7,7 +7,7 @@
     <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
             <h1 class="text-xl font-bold tracking-tight text-foreground">Data Member & Peserta</h1>
-            <p class="text-xs text-muted-foreground mt-0.5">Daftar pengguna terdaftar yang bersumber dari tabel member.</p>
+            <p class="text-xs text-muted-foreground mt-0.5">Daftar pengguna terdaftar di sistem VLC. Klik baris untuk melihat rincian profil dan riwayat kelas.</p>
         </div>
     </div>
 
@@ -50,23 +50,25 @@
                         <th class="px-4 py-3 font-semibold text-center">Kelas Diikuti</th>
                         <th class="px-4 py-3 font-semibold">Status</th>
                         <th class="px-4 py-3 font-semibold">Terdaftar</th>
+                        <th class="px-4 py-3 font-semibold text-right">Aksi</th>
                     </tr>
                 </thead>
                 <tbody class="divide-y divide-border">
                     <?php if (empty($members)): ?>
                         <tr>
-                            <td colspan="7" class="px-4 py-12 text-center text-muted-foreground">
+                            <td colspan="8" class="px-4 py-12 text-center text-muted-foreground">
                                 <i data-lucide="users" class="size-8 mx-auto mb-2 opacity-50"></i>
                                 <p class="text-xs">Belum ada akun member yang sesuai filter.</p>
                             </td>
                         </tr>
                     <?php else: ?>
                         <?php foreach ($members as $m): ?>
-                            <tr class="hover:bg-muted/20 transition-colors">
+                            <tr onclick="window.location='/members/detail/<?= $m['memberID'] ?>'" 
+                                class="hover:bg-muted/40 cursor-pointer transition-colors group">
                                 <td class="px-4 py-3.5 font-mono text-[11px] text-muted-foreground">
                                     #<?= esc($m['memberID']) ?>
                                 </td>
-                                <td class="px-4 py-3.5 font-semibold text-foreground">
+                                <td class="px-4 py-3.5 font-semibold text-foreground group-hover:text-[#C41E24] transition-colors">
                                     <?= esc($m['fullname'] ?? '-') ?>
                                 </td>
                                 <td class="px-4 py-3.5 text-muted-foreground">
@@ -98,6 +100,12 @@
                                 </td>
                                 <td class="px-4 py-3.5 text-muted-foreground">
                                     <?= esc(substr($m['signupdate'] ?? '-', 0, 10)) ?>
+                                </td>
+                                <td class="px-4 py-3.5 text-right">
+                                    <span class="inline-flex items-center gap-1 text-[11px] font-semibold text-[#C41E24] group-hover:translate-x-0.5 transition-transform">
+                                        <span>Detail</span>
+                                        <i data-lucide="chevron-right" class="size-3.5"></i>
+                                    </span>
                                 </td>
                             </tr>
                         <?php endforeach; ?>

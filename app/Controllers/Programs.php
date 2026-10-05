@@ -4,6 +4,7 @@ namespace App\Controllers;
 
 use App\Models\ProgramModel;
 use App\Models\ProgramModuleModel;
+use App\Models\ActivityLogModel;
 
 class Programs extends BaseController
 {
@@ -52,7 +53,6 @@ class Programs extends BaseController
         }
 
         $slug = url_title($name, '-', true);
-        // Check uniqueness of slug
         $existing = $this->programModel->where('slug', $slug)->first();
         if ($existing) {
             $slug .= '-' . time();
@@ -74,6 +74,13 @@ class Programs extends BaseController
         ];
 
         $programId = $this->programModel->insert($insertData);
+
+        ActivityLogModel::log(
+            'INSERT',
+            'programs',
+            "Membuat program pelatihan baru: '{$name}' (Slug: {$slug})",
+            (string)$programId
+        );
 
         return redirect()->to('/programs/edit/' . $programId)->with('success', 'Program berhasil dibuat! Sekarang Anda dapat menambahkan modul materi.');
     }
@@ -123,6 +130,13 @@ class Programs extends BaseController
 
         $this->programModel->update($id, $updateData);
 
+        ActivityLogModel::log(
+            'UPDATE',
+            'programs',
+            "Memperbarui informasi program pelatihan: '{$name}'",
+            (string)$id
+        );
+
         return redirect()->to('/programs/edit/' . $id)->with('success', 'Informasi program berhasil diperbarui.');
     }
 
@@ -133,9 +147,18 @@ class Programs extends BaseController
             return redirect()->to('/programs')->with('error', 'Program tidak ditemukan.');
         }
 
+        $programName = $program['name'];
+
         // Delete associated modules
         $this->moduleModel->where('program_id', $id)->delete();
         $this->programModel->delete($id);
+
+        ActivityLogModel::log(
+            'DELETE',
+            'programs',
+            "Menghapus program pelatihan: '{$programName}' beserta seluruh modulnya",
+            (string)$id
+        );
 
         return redirect()->to('/programs')->with('success', 'Program dan modulnya berhasil dihapus.');
     }
@@ -152,11 +175,10 @@ class Programs extends BaseController
             return redirect()->back()->with('error', 'Judul modul wajib diisi.');
         }
 
-        // Determine next sort order
         $currentMax = $this->moduleModel->where('program_id', $programId)->selectMax('sort_order')->first();
         $nextSort = ($currentMax['sort_order'] ?? 0) + 1;
 
-        $this->moduleModel->insert([
+        $moduleId = $this->moduleModel->insert([
             'program_id'       => $programId,
             'title'            => $title,
             'description'      => $this->request->getPost('module_description'),
@@ -165,6 +187,13 @@ class Programs extends BaseController
             'video_url'        => $this->request->getPost('video_url'),
             'sort_order'       => $nextSort,
         ]);
+
+        ActivityLogModel::log(
+            'INSERT',
+            'programs',
+            "Menambahkan modul materi '{$title}' pada program '{$program['name']}'",
+            (string)$moduleId
+        );
 
         return redirect()->to('/programs/edit/' . $programId)->with('success', 'Modul berhasil ditambahkan.');
     }
@@ -177,7 +206,15 @@ class Programs extends BaseController
         }
 
         $programId = $module['program_id'];
+        $moduleTitle = $module['title'];
         $this->moduleModel->delete($moduleId);
+
+        ActivityLogModel::log(
+            'DELETE',
+            'programs',
+            "Menghapus modul materi '{$moduleTitle}' dari program ID #{$programId}",
+            (string)$moduleId
+        );
 
         return redirect()->to('/programs/edit/' . $programId)->with('success', 'Modul berhasil dihapus.');
     }

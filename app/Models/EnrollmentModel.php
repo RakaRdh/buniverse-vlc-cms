@@ -17,7 +17,6 @@ class EnrollmentModel extends Model
         'status',
         'enrolled_at',
         'completed_at',
-        'progress',
         'notes'
     ];
     protected $useTimestamps = true;
@@ -55,5 +54,16 @@ class EnrollmentModel extends Model
         }
 
         return $builder->get()->getResultArray();
+    }
+
+    public function getEnrollmentsByMember($memberId)
+    {
+        return $this->db->table('tblprogram_enrollment e')
+            ->select('e.*, pr.name as program_name, pr.slug as program_slug, pr.schedule_info as batch_info, pr.price, pr.status as program_status')
+            ->join('tblprogram pr', 'pr.id = e.program_id', 'left')
+            ->where('e.member_id', $memberId)
+            ->orderBy('e.id', 'DESC')
+            ->get()
+            ->getResultArray();
     }
 }

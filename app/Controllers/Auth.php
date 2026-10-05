@@ -68,11 +68,21 @@ class Auth extends BaseController
             'admin_role'      => $admin['roleName'] ?? 'superadmin',
         ]);
 
+        \App\Models\ActivityLogModel::log(
+            'LOGIN',
+            'auth',
+            'Admin ' . ($admin['name'] ?? $admin['userName']) . ' berhasil login ke sistem'
+        );
+
         return redirect()->to('/dashboard')->with('success', 'Selamat datang kembali, ' . ($admin['name'] ?? 'Admin') . '!');
     }
 
     public function logout()
     {
+        $adminName = session()->get('admin_name');
+        if ($adminName) {
+            \App\Models\ActivityLogModel::log('LOGOUT', 'auth', 'Admin ' . $adminName . ' melakukan logout');
+        }
         session()->destroy();
         return redirect()->to('/login')->with('success', 'Anda telah berhasil logout.');
     }

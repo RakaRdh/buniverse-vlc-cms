@@ -4,6 +4,7 @@ namespace App\Controllers;
 
 use App\Models\EnrollmentModel;
 use App\Models\ProgramModel;
+use App\Models\ActivityLogModel;
 
 class Enrollments extends BaseController
 {
@@ -45,20 +46,41 @@ class Enrollments extends BaseController
         }
 
         $newStatus = $this->request->getPost('status');
-        $progress = (int) $this->request->getPost('progress');
+        $allowedStatuses = ['enrolled', 'contacted', 'in_progress', 'finished'];
+
+        if (!in_array($newStatus, $allowedStatuses, true)) {
+            return redirect()->to('/enrollments')->with('error', 'Status pendaftaran tidak valid.');
+        }
+
+        $oldStatus = $enrollment['status'];
 
         $updateData = [
-            'status'   => $newStatus,
-            'progress' => min(100, max(0, $progress)),
+            'status' => $newStatus,
         ];
 
-        if ($newStatus === 'completed' && empty($enrollment['completed_at'])) {
+        if ($newStatus === 'finished' && empty($enrollment['completed_at'])) {
             $updateData['completed_at'] = date('Y-m-d H:i:s');
-            $updateData['progress'] = 100;
+        } elseif ($newStatus !== 'finished') {
+            $updateData['completed_at'] = null;
         }
 
         $this->enrollmentModel->update($id, $updateData);
 
-        return redirect()->to('/enrollments')->with('success', 'Status pendaftaran berhasil diperbarui.');
+        // Fetch participant & program names for descriptive audit log
+        $enrollmentDetails = $this->enrollmentModel->getEnrollments(null, null, null);
+        $itemDetail = array_values(array_filter($enrollmentDetails, fn($row) => (int)$row['id'] === (int)$id))[0] ?? null;
+        $memberName = $itemDetail['member_name'] ?? ('Member #' . $enrollment['member_id']);
+        $programName = $itemDetail['program_name'] ?? ('Program #' . $enrollment['program_id']);
+
+        ActivityLogModel::log(
+            'STATUS_CHANGE',
+            'enrollments',
+            "Mengubah status pendaftaran {$memberName} ({$programName}) dari '{$oldStatus}' menjadi '{$newStatus}'",
+            (string)$id,
+            (int)$enrollment['member_id'],
+            $memberName
+        );
+
+        return redirect()->to('/enrollments')->with('success', "Status pendaftaran {$memberName} berhasil diubah menjadi '" . ucfirst(str_replace('_', ' ', $newStatus)) . "'.");
     }
 }

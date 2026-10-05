@@ -36,9 +36,7 @@
 <div class="w-full max-w-md">
     <!-- Brand Title -->
     <div class="text-center mb-8">
-        <div class="inline-flex size-14 rounded-2xl bg-[#C41E24] items-center justify-center text-white font-bold text-2xl shadow-xl shadow-red-600/25 mb-3 border-2 border-white">
-            VLC
-        </div>
+        <img src="/img/logo-vlc.webp" alt="VLC Logo" class="h-12 w-auto mx-auto mb-3 object-contain">
         <h1 class="text-2xl font-bold tracking-tight text-slate-900">
             DATASATU <span class="text-[#C41E24]">VLC</span> CMS
         </h1>
@@ -87,8 +85,13 @@
                         <i data-lucide="lock" class="size-4"></i>
                     </span>
                     <input type="password" id="password" name="password" value="admin123" required
-                           class="w-full pl-10 pr-3.5 py-2.5 text-sm rounded-lg border border-slate-300 bg-white focus:outline-none focus:ring-2 focus:ring-[#C41E24] focus:border-[#C41E24] transition text-slate-800"
+                           class="w-full pl-10 pr-10 py-2.5 text-sm rounded-lg border border-slate-300 bg-white focus:outline-none focus:ring-2 focus:ring-[#C41E24] focus:border-[#C41E24] transition text-slate-800"
                            placeholder="Masukkan password">
+                    <button type="button" onclick="togglePasswordVisibility('password', this)"
+                            class="absolute inset-y-0 right-0 flex items-center pr-3 text-slate-400 hover:text-slate-600 focus:outline-none"
+                            title="Tampilkan / Sembunyikan Password">
+                        <i data-lucide="eye" class="size-4"></i>
+                    </button>
                 </div>
             </div>
 
@@ -108,6 +111,21 @@
 </div>
 
 <script>
+    function togglePasswordVisibility(inputId, btn) {
+        const input = document.getElementById(inputId);
+        const icon = btn.querySelector('[data-lucide]');
+        if (input.type === 'password') {
+            input.type = 'text';
+            icon.setAttribute('data-lucide', 'eye-off');
+        } else {
+            input.type = 'password';
+            icon.setAttribute('data-lucide', 'eye');
+        }
+        if (window.lucide) {
+            lucide.createIcons();
+        }
+    }
+
     document.addEventListener("DOMContentLoaded", function() {
         if (window.lucide) {
             lucide.createIcons();
