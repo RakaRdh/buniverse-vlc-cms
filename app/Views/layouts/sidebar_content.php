@@ -29,8 +29,14 @@ $navGroups = [
     [
         'label' => 'Management',
         'items' => [
-            ['label' => 'Members', 'to' => 'members', 'icon' => 'users', 'type' => 'link'],
-            ['label' => 'My Profile', 'to' => 'profile', 'icon' => 'user-check', 'type' => 'link']
+            ['label' => 'Members', 'to' => 'members', 'icon' => 'users', 'type' => 'link']
+        ]
+    ],
+    [
+        'label' => 'Content & Media',
+        'items' => [
+            ['label' => 'Gallery', 'to' => 'gallery', 'icon' => 'image', 'type' => 'link'],
+            ['label' => 'FAQ', 'to' => 'faq', 'icon' => 'help-circle', 'type' => 'link']
         ]
     ]
 ];

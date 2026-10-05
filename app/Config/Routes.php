@@ -51,6 +51,16 @@ $routes->group('', ['filter' => 'adminauth'], static function ($routes) {
     $routes->get('members', 'Members::index');
     $routes->get('members/detail/(:num)', 'Members::detail/$1');
 
+    // Gallery Management
+    $routes->get('gallery', 'Gallery::index');
+    $routes->post('gallery/save', 'Gallery::save');
+    $routes->get('gallery/delete/(:num)', 'Gallery::delete/$1');
+
+    // FAQ Management
+    $routes->get('faq', 'Faq::index');
+    $routes->post('faq/save', 'Faq::save');
+    $routes->get('faq/delete/(:num)', 'Faq::delete/$1');
+
     // Activity Log (Superadmin only inside controller)
     $routes->get('activity-log', 'ActivityLog::index');
 

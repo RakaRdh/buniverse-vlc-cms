@@ -3,23 +3,30 @@ $currentUri = uri_string();
 if (empty($currentUri)) $currentUri = 'dashboard';
 
 $routeTitles = [
-    'dashboard' => ['section' => 'Overview', 'page' => 'Dashboard'],
-    'programs' => ['section' => 'Learning', 'page' => 'Daftar Program'],
+    'dashboard'    => ['section' => 'Overview', 'page' => 'Dashboard'],
+    'programs'     => ['section' => 'Learning', 'page' => 'Daftar Program'],
     'programs/new' => ['section' => 'Learning', 'page' => 'Tambah Program'],
-    'enrollments' => ['section' => 'Learning', 'page' => 'Data Enrollment'],
-    'members' => ['section' => 'Management', 'page' => 'Data Member'],
+    'enrollments'  => ['section' => 'Learning', 'page' => 'Data Enrollment'],
+    'members'      => ['section' => 'Management', 'page' => 'Data Member'],
+    'gallery'      => ['section' => 'Content', 'page' => 'Kelola Galeri'],
+    'faq'          => ['section' => 'Content', 'page' => 'Kelola FAQ'],
+    'profile'      => ['section' => 'Account', 'page' => 'Profil Administrator'],
+    'activity-log' => ['section' => 'Security & Audit', 'page' => 'Activity Log'],
 ];
 
 $crumb = $routeTitles[$currentUri] ?? null;
 if (!$crumb) {
     if (str_starts_with($currentUri, 'programs/edit/')) {
         $crumb = ['section' => 'Learning', 'page' => 'Edit Program'];
-    } elseif (str_starts_with($currentUri, 'programs/modules/')) {
-        $crumb = ['section' => 'Learning', 'page' => 'Kelola Modul'];
+    } elseif (str_starts_with($currentUri, 'members/detail/')) {
+        $crumb = ['section' => 'Management', 'page' => 'Detail Member'];
     } else {
         $crumb = ['section' => 'Overview', 'page' => 'Workspace'];
     }
 }
+
+$adminName = session('admin_name') ?? 'Admin';
+$adminInitial = strtoupper(substr($adminName, 0, 1));
 ?>
 
 <header class="sticky top-0 z-30 border-b border-border bg-card/85 backdrop-blur-md">
@@ -41,17 +48,21 @@ if (!$crumb) {
         </div>
 
         <!-- Right action tools -->
-        <div class="flex items-center gap-2">
+        <div class="flex items-center gap-2.5">
             <!-- Dark / Light theme toggle -->
-            <button type="button" onclick="toggleTheme()" id="globalThemeToggleBtn" class="inline-flex size-9 items-center justify-center rounded-md text-foreground hover:bg-muted transition-colors" title="Ganti Tema">
+            <button type="button" onclick="toggleTheme()" id="globalThemeToggleBtn" class="inline-flex size-9 items-center justify-center rounded-lg text-foreground hover:bg-muted transition-colors" title="Ganti Tema">
                 <i data-lucide="moon" class="size-4 theme-icon-moon"></i>
                 <i data-lucide="sun" class="size-4 theme-icon-sun hidden"></i>
             </button>
 
-            <!-- Frontend Website Quick Link -->
-            <a href="http://localhost:8080" target="_blank" class="hidden sm:inline-flex items-center gap-1.5 rounded-md border border-border px-3 py-1.5 text-xs font-medium text-muted-foreground hover:text-foreground hover:bg-muted transition-colors">
-                <i data-lucide="external-link" class="size-3.5"></i>
-                <span>Lihat Frontend</span>
+            <!-- Admin Profile Icon Button -->
+            <a href="/profile" 
+               class="inline-flex items-center gap-2 p-1 sm:px-2.5 sm:py-1.5 rounded-lg border border-border bg-background hover:bg-muted transition-colors text-foreground group" 
+               title="Profil Administrator">
+                <div class="size-6 rounded-full bg-[#C41E24] text-white flex items-center justify-center text-[10px] font-bold shadow-xs">
+                    <?= esc($adminInitial) ?>
+                </div>
+                <span class="hidden sm:inline text-xs font-semibold max-w-[120px] truncate"><?= esc($adminName) ?></span>
             </a>
         </div>
     </div>
