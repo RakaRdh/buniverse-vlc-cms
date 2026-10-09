@@ -61,7 +61,17 @@ class Enrollments extends BaseApiController
             return $this->respondFail('Nomor telepon / WhatsApp wajib dilengkapi untuk mendaftar kelas', 400);
         }
 
+        $existing = $this->enrollmentModel->where('member_id', $memberId)
+                                          ->where('program_id', $programId)
+                                          ->first();
+        if ($existing && $existing['status'] === 'rejected') {
+            return $this->respondFail('Pendaftaran Anda untuk program pelatihan ini telah ditolak oleh admin dan tidak dapat mendaftar kembali pada program ini.', 400);
+        }
+
         $enrollment = $this->enrollmentModel->enrollMember($memberId, $programId, $notes);
+        if (!$enrollment) {
+            return $this->respondFail('Pendaftaran Anda untuk program pelatihan ini telah ditolak oleh admin dan tidak dapat mendaftar kembali pada program ini.', 400);
+        }
 
         return $this->respondSuccess([
             'enrollment' => $enrollment,

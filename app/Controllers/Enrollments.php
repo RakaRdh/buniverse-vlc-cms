@@ -98,7 +98,7 @@ class Enrollments extends BaseController
 
         $statusMessage = match($newStatus) {
             'active'    => 'Active (Terverifikasi - Email Disetujui Terkirim)',
-            'rejected'  => 'Rejected (Ditolak - Email Pemberitahuan Terkirim)',
+            'rejected'  => 'Rejected (Ditolak - Peserta tidak dapat mendaftar lagi pada program ini dan email penolakan terkirim)',
             'contacted' => 'Contacted (Sudah Dihubungi)',
             'finished'  => 'Finished (Selesai)',
             default     => ucfirst($newStatus)

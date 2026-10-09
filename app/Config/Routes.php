@@ -91,6 +91,7 @@ $routes->group('api', ['namespace' => 'App\Controllers\Api'], static function ($
     $routes->post('auth/register', 'Auth::register');
     $routes->post('auth/verify', 'Auth::verify');
     $routes->post('auth/resend-verification', 'Auth::resendVerification');
+    $routes->match(['get', 'post'], 'auth/check-email', 'Auth::checkEmail');
 
     // Member Profile
     $routes->get('profile/(:num)', 'Profile::show/$1');

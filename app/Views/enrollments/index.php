@@ -135,7 +135,9 @@
 
                                 <!-- Update Status Column -->
                                 <td class="px-4 py-3.5 text-right">
-                                    <form action="/enrollments/update-status/<?= $e['id'] ?>" method="POST" class="inline-flex items-center gap-1.5 justify-end">
+                                    <form action="/enrollments/update-status/<?= $e['id'] ?>" method="POST" 
+                                          onsubmit="return handleStatusSubmit(event, this, '<?= esc(addslashes($e['member_name'] ?? 'Peserta')) ?>', '<?= esc(addslashes($e['program_name'] ?? 'Program')) ?>')"
+                                          class="inline-flex items-center gap-1.5 justify-end">
                                         <?= csrf_field() ?>
                                         
                                         <select name="status" 
@@ -162,5 +164,83 @@
         </div>
     </div>
 </div>
+
+<!-- Modal Konfirmasi Penolakan (Rejected) -->
+<div id="rejectConfirmModal" class="fixed inset-0 z-50 hidden bg-black/60 backdrop-blur-xs flex items-center justify-center p-4">
+    <div class="bg-card w-full max-w-md rounded-2xl border border-border shadow-2xl p-6 relative">
+        <div class="flex items-start gap-4 mb-4">
+            <div class="size-11 rounded-full bg-red-500/10 text-red-600 flex items-center justify-center shrink-0 border border-red-500/20">
+                <i data-lucide="alert-triangle" class="size-6"></i>
+            </div>
+            <div>
+                <h3 class="text-base font-bold text-foreground">Konfirmasi Penolakan Pendaftaran</h3>
+                <p class="text-xs text-muted-foreground mt-0.5">Peringatan tindakan penolakan pendaftaran kelas.</p>
+            </div>
+        </div>
+
+        <div class="space-y-3 text-xs text-foreground bg-muted/40 rounded-xl p-4 border border-border/60 mb-5">
+            <p>Anda akan mengubah status pendaftaran peserta:</p>
+            <div class="font-semibold text-foreground border-l-2 border-red-500 pl-2.5 space-y-1">
+                <div>Peserta: <span id="modalRejectMember" class="font-bold text-red-600 dark:text-red-400"></span></div>
+                <div>Program: <span id="modalRejectProgram" class="font-bold"></span></div>
+            </div>
+            <div class="p-3 rounded-lg bg-red-50 dark:bg-red-950/40 border border-red-200 dark:border-red-900/50 text-red-700 dark:text-red-300 font-medium leading-relaxed">
+                <strong>Perhatian:</strong> Setelah status diubah menjadi <strong>Rejected</strong>, peserta <u>tidak akan bisa lagi mendaftar (assign) kembali</u> pada program pelatihan ini, dan email pemberitahuan penolakan otomatis dikirimkan ke email peserta.
+            </div>
+        </div>
+
+        <div class="flex items-center justify-end gap-2.5 pt-2">
+            <button type="button" onclick="closeRejectModal()" 
+                    class="px-4 py-2 rounded-lg border border-border text-xs font-semibold text-foreground hover:bg-muted transition-colors cursor-pointer">
+                Batal
+            </button>
+            <button type="button" id="confirmRejectBtn" onclick="executeRejectSubmit()" 
+                    class="px-4 py-2 rounded-lg bg-red-600 hover:bg-red-700 text-white text-xs font-bold shadow-xs transition-colors cursor-pointer">
+                Ya, Tolak Pendaftaran
+            </button>
+        </div>
+    </div>
+</div>
+
+<script>
+    let pendingFormToSubmit = null;
+
+    function handleStatusSubmit(e, form, memberName, programName) {
+        const statusSelect = form.querySelector('select[name="status"]');
+        if (statusSelect && statusSelect.value === 'rejected') {
+            e.preventDefault();
+            pendingFormToSubmit = form;
+            
+            document.getElementById('modalRejectMember').textContent = memberName;
+            document.getElementById('modalRejectProgram').textContent = programName;
+            
+            const modal = document.getElementById('rejectConfirmModal');
+            if (modal) {
+                modal.classList.remove('hidden');
+            }
+            if (window.lucide) {
+                lucide.createIcons();
+            }
+            return false;
+        }
+        return true;
+    }
+
+    function closeRejectModal() {
+        const modal = document.getElementById('rejectConfirmModal');
+        if (modal) {
+            modal.classList.add('hidden');
+        }
+        pendingFormToSubmit = null;
+    }
+
+    function executeRejectSubmit() {
+        if (pendingFormToSubmit) {
+            const form = pendingFormToSubmit;
+            pendingFormToSubmit = null;
+            form.submit();
+        }
+    }
+</script>
 
 <?= $this->endSection() ?>

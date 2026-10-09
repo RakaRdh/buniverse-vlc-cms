@@ -207,4 +207,28 @@ class Auth extends BaseApiController
             'email_sent' => $emailSent
         ], 'Tautan verifikasi baru telah dikirimkan ke email Anda.');
     }
+
+    /**
+     * GET/POST /api/auth/check-email
+     */
+    public function checkEmail()
+    {
+        $email = strtolower(trim($this->request->getVar('email') ?? ''));
+        if (empty($email)) {
+            return $this->respondFail('Email wajib diisi', 400);
+        }
+
+        $existing = $this->memberModel->where('email', $email)->first();
+        if ($existing) {
+            return $this->respondSuccess([
+                'exists' => true,
+                'status' => $existing['status'],
+            ], 'Email sudah terdaftar. Silakan login atau gunakan email lain.');
+        }
+
+        return $this->respondSuccess([
+            'exists' => false,
+        ], 'Email tersedia.');
+    }
 }
+
