@@ -59,11 +59,32 @@ class EnrollmentModel extends Model
     public function getEnrollmentsByMember($memberId)
     {
         return $this->db->table('tblprogram_enrollment e')
-            ->select('e.*, pr.name as program_name, pr.slug as program_slug, pr.schedule_info as batch_info, pr.price, pr.status as program_status')
+            ->select('e.*, pr.name as program_name, pr.slug as program_slug, pr.schedule_info as batch_info, pr.image, pr.price, pr.status as program_status')
             ->join('tblprogram pr', 'pr.id = e.program_id', 'left')
             ->where('e.member_id', $memberId)
             ->orderBy('e.id', 'DESC')
             ->get()
             ->getResultArray();
+    }
+
+    public function enrollMember($memberId, $programId, $notes = null)
+    {
+        $existing = $this->where('member_id', $memberId)
+                         ->where('program_id', $programId)
+                         ->first();
+
+        if ($existing) {
+            return $existing;
+        }
+
+        $id = $this->insert([
+            'member_id'   => $memberId,
+            'program_id'  => $programId,
+            'status'      => 'enrolled',
+            'enrolled_at' => date('Y-m-d H:i:s'),
+            'notes'       => $notes
+        ]);
+
+        return $this->find($id);
     }
 }

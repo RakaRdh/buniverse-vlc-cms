@@ -1,0 +1,128 @@
+<?php
+
+namespace App\Controllers\Api;
+
+use App\Models\MemberModel;
+use App\Models\ProfileModel;
+
+class Auth extends BaseApiController
+{
+    protected $memberModel;
+    protected $profileModel;
+
+    public function __construct()
+    {
+        $this->memberModel = new MemberModel();
+        $this->profileModel = new ProfileModel();
+    }
+
+    /**
+     * POST /api/auth/login
+     */
+    public function login()
+    {
+        $email = strtolower(trim($this->request->getVar('email') ?? ''));
+        $password = (string) ($this->request->getVar('password') ?? '');
+
+        if (empty($email) || empty($password)) {
+            return $this->respondFail('Email dan Password wajib diisi', 400);
+        }
+
+        $member = $this->memberModel->where('email', $email)->first();
+        if (!$member) {
+            return $this->respondFail('Email tidak terdaftar', 404);
+        }
+
+        if ($member['status'] === 'banned') {
+            return $this->respondFail('Akun Anda sedang dinonaktifkan / dibanned', 403);
+        }
+
+        $isValid = MemberModel::verifyPassword($password, $member['password'], $member['salt'] ?? '');
+        if (!$isValid) {
+            return $this->respondFail('Password yang Anda masukkan salah', 401);
+        }
+
+        // Update last login
+        $this->memberModel->update($member['memberID'], [
+            'lastlogin' => date('Y-m-d H:i:s')
+        ]);
+
+        $profile = $this->profileModel->where('member_id', $member['memberID'])->first();
+
+        // Remove sensitive fields from output
+        unset($member['password'], $member['salt']);
+
+        return $this->respondSuccess([
+            'member'  => $member,
+            'profile' => $profile
+        ], 'Login berhasil');
+    }
+
+    /**
+     * POST /api/auth/register
+     */
+    public function register()
+    {
+        $fullname = trim($this->request->getVar('fullname') ?? '');
+        $email = strtolower(trim($this->request->getVar('email') ?? ''));
+        $phone = trim($this->request->getVar('phone') ?? '');
+        $password = (string) ($this->request->getVar('password') ?? '');
+        $address = trim($this->request->getVar('address') ?? '');
+        $newsletter = $this->request->getVar('newsletter');
+
+        if (empty($fullname) || empty($email) || empty($phone) || empty($password)) {
+            return $this->respondFail('Semua kolom bertanda bintang (*) wajib diisi', 400);
+        }
+
+        if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
+            return $this->respondFail('Format email tidak valid', 400);
+        }
+
+        if (strlen($password) < 6) {
+            return $this->respondFail('Password minimal terdiri dari 6 karakter', 400);
+        }
+
+        $existing = $this->memberModel->where('email', $email)->first();
+        if ($existing) {
+            return $this->respondFail('Email ini sudah terdaftar. Silakan login.', 409);
+        }
+
+        $db = \Config\Database::connect();
+        $db->transBegin();
+
+        try {
+            $memberId = $this->memberModel->registerMember([
+                'fullname'   => $fullname,
+                'email'      => $email,
+                'password'   => $password,
+                'newsletter' => !empty($newsletter) ? 1 : 0
+            ]);
+
+            if (!$memberId) {
+                $db->transRollback();
+                return $this->respondFail('Gagal membuat akun member', 500);
+            }
+
+            $this->profileModel->insert([
+                'member_id' => $memberId,
+                'phone'     => $phone,
+                'address'   => $address
+            ]);
+
+            $db->transCommit();
+
+            $member = $this->memberModel->find($memberId);
+            $profile = $this->profileModel->where('member_id', $memberId)->first();
+
+            unset($member['password'], $member['salt']);
+
+            return $this->respondSuccess([
+                'member'  => $member,
+                'profile' => $profile
+            ], 'Registrasi akun berhasil', 201);
+        } catch (\Exception $e) {
+            $db->transRollback();
+            return $this->respondFail('Terjadi kesalahan saat registrasi: ' . $e->getMessage(), 500);
+        }
+    }
+}

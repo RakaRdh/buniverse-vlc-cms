@@ -31,6 +31,43 @@ class ProgramModel extends Model
     protected $createdField  = 'created_at';
     protected $updatedField  = 'updated_at';
 
+    public function getActivePrograms()
+    {
+        $programs = $this->where('status', 'active')
+                         ->orderBy('id', 'DESC')
+                         ->findAll();
+
+        foreach ($programs as &$p) {
+            $count = $this->db->table('tblprogram_module')
+                ->where('program_id', $p['id'])
+                ->countAllResults();
+            $p['modules_count'] = $count;
+        }
+
+        return $programs;
+    }
+
+    public function getProgramWithModules($slugOrId)
+    {
+        $program = is_numeric($slugOrId)
+            ? $this->find($slugOrId)
+            : $this->where('slug', $slugOrId)->first();
+
+        if (!$program) {
+            return null;
+        }
+
+        $modules = $this->db->table('tblprogram_module')
+            ->where('program_id', $program['id'])
+            ->orderBy('sort_order', 'ASC')
+            ->get()
+            ->getResultArray();
+
+        $program['modules'] = $modules;
+        $program['modules_count'] = count($modules);
+        return $program;
+    }
+
     public function getProgramsWithCounts($status = null, $keyword = null)
     {
         $builder = $this->db->table('tblprogram p')

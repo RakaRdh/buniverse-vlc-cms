@@ -68,3 +68,31 @@ $routes->group('', ['filter' => 'adminauth'], static function ($routes) {
     $routes->get('profile', 'Profile::index');
     $routes->post('profile/update-password', 'Profile::updatePassword');
 });
+
+/*
+ * --------------------------------------------------------------------
+ * REST API Routes (For Frontend & External Clients)
+ * --------------------------------------------------------------------
+ */
+$routes->group('api', ['namespace' => 'App\Controllers\Api'], static function ($routes) {
+    // Programs
+    $routes->get('programs', 'Programs::index');
+    $routes->get('programs/(:any)', 'Programs::show/$1');
+
+    // Galleries & FAQs
+    $routes->get('galleries', 'Galleries::index');
+    $routes->get('faqs', 'Faqs::index');
+
+    // Authentication (Member)
+    $routes->post('auth/login', 'Auth::login');
+    $routes->post('auth/register', 'Auth::register');
+
+    // Member Profile
+    $routes->get('profile/(:num)', 'Profile::show/$1');
+    $routes->post('profile/(:num)', 'Profile::update/$1');
+
+    // Enrollments
+    $routes->post('enrollments', 'Enrollments::create');
+    $routes->get('enrollments/member/(:num)', 'Enrollments::byMember/$1');
+});
+
