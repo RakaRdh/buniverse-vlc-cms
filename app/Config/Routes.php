@@ -89,6 +89,8 @@ $routes->group('api', ['namespace' => 'App\Controllers\Api'], static function ($
     // Authentication (Member)
     $routes->post('auth/login', 'Auth::login');
     $routes->post('auth/register', 'Auth::register');
+    $routes->post('auth/verify', 'Auth::verify');
+    $routes->post('auth/resend-verification', 'Auth::resendVerification');
 
     // Member Profile
     $routes->get('profile/(:num)', 'Profile::show/$1');

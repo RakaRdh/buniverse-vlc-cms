@@ -46,7 +46,7 @@ class Enrollments extends BaseController
         }
 
         $newStatus = $this->request->getPost('status');
-        $allowedStatuses = ['enrolled', 'contacted', 'in_progress', 'finished'];
+        $allowedStatuses = ['waiting', 'contacted', 'active', 'finished', 'rejected', 'enrolled', 'in_progress'];
 
         if (!in_array($newStatus, $allowedStatuses, true)) {
             return redirect()->to('/enrollments')->with('error', 'Status pendaftaran tidak valid.');
@@ -66,11 +66,26 @@ class Enrollments extends BaseController
 
         $this->enrollmentModel->update($id, $updateData);
 
-        // Fetch participant & program names for descriptive audit log
+        // Fetch participant & program names for descriptive audit log & email
         $enrollmentDetails = $this->enrollmentModel->getEnrollments(null, null, null);
         $itemDetail = array_values(array_filter($enrollmentDetails, fn($row) => (int)$row['id'] === (int)$id))[0] ?? null;
         $memberName = $itemDetail['member_name'] ?? ('Member #' . $enrollment['member_id']);
+        $memberEmail = $itemDetail['member_email'] ?? null;
         $programName = $itemDetail['program_name'] ?? ('Program #' . $enrollment['program_id']);
+
+        // Send email notifications via EmailService
+        if (!empty($memberEmail)) {
+            $emailService = new \App\Services\EmailService();
+            $programData = $this->programModel->find($enrollment['program_id']) ?: ['name' => $programName];
+
+            if ($newStatus === 'active' && $oldStatus !== 'active') {
+                $emailService->sendEnrollmentApprovedEmail($memberEmail, $memberName, $programData);
+            } elseif ($newStatus === 'rejected' && $oldStatus !== 'rejected') {
+                $emailService->sendEnrollmentRejectedEmail($memberEmail, $memberName, $programData);
+            }
+        }
+
+        $this->purgeAllCache();
 
         ActivityLogModel::log(
             'STATUS_CHANGE',
@@ -81,6 +96,14 @@ class Enrollments extends BaseController
             $memberName
         );
 
-        return redirect()->to('/enrollments')->with('success', "Status pendaftaran {$memberName} berhasil diubah menjadi '" . ucfirst(str_replace('_', ' ', $newStatus)) . "'.");
+        $statusMessage = match($newStatus) {
+            'active'    => 'Active (Terverifikasi - Email Disetujui Terkirim)',
+            'rejected'  => 'Rejected (Ditolak - Email Pemberitahuan Terkirim)',
+            'contacted' => 'Contacted (Sudah Dihubungi)',
+            'finished'  => 'Finished (Selesai)',
+            default     => ucfirst($newStatus)
+        };
+
+        return redirect()->to('/enrollments')->with('success', "Status pendaftaran {$memberName} berhasil diubah menjadi '{$statusMessage}'.");
     }
 }

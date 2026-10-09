@@ -37,6 +37,10 @@ class Auth extends BaseApiController
             return $this->respondFail('Akun Anda sedang dinonaktifkan / dibanned', 403);
         }
 
+        if ($member['status'] === 'inactive') {
+            return $this->respondFail('Akun Anda belum aktif. Silakan periksa inbox email Anda untuk memverifikasi akun terlebih dahulu.', 403);
+        }
+
         $isValid = MemberModel::verifyPassword($password, $member['password'], $member['salt'] ?? '');
         if (!$isValid) {
             return $this->respondFail('Password yang Anda masukkan salah', 401);
@@ -87,15 +91,18 @@ class Auth extends BaseApiController
             return $this->respondFail('Email ini sudah terdaftar. Silakan login.', 409);
         }
 
+        $verifyToken = bin2hex(random_bytes(32));
+
         $db = \Config\Database::connect();
         $db->transBegin();
 
         try {
             $memberId = $this->memberModel->registerMember([
-                'fullname'   => $fullname,
-                'email'      => $email,
-                'password'   => $password,
-                'newsletter' => !empty($newsletter) ? 1 : 0
+                'fullname'     => $fullname,
+                'email'        => $email,
+                'password'     => $password,
+                'verify_token' => $verifyToken,
+                'newsletter'   => !empty($newsletter) ? 1 : 0
             ]);
 
             if (!$memberId) {
@@ -114,15 +121,90 @@ class Auth extends BaseApiController
             $member = $this->memberModel->find($memberId);
             $profile = $this->profileModel->where('member_id', $memberId)->first();
 
+            // Send verification email via EmailService
+            $emailService = new \App\Services\EmailService();
+            $emailSent = $emailService->sendAccountVerificationEmail($email, $fullname, $verifyToken);
+
             unset($member['password'], $member['salt']);
 
             return $this->respondSuccess([
-                'member'  => $member,
-                'profile' => $profile
-            ], 'Registrasi akun berhasil', 201);
+                'member'     => $member,
+                'profile'    => $profile,
+                'email_sent' => $emailSent
+            ], 'Registrasi berhasil! Tautan verifikasi telah dikirimkan ke email Anda.', 201);
         } catch (\Exception $e) {
             $db->transRollback();
             return $this->respondFail('Terjadi kesalahan saat registrasi: ' . $e->getMessage(), 500);
         }
+    }
+
+    /**
+     * POST /api/auth/verify
+     */
+    public function verify()
+    {
+        $token = trim($this->request->getVar('token') ?? '');
+        $email = strtolower(trim($this->request->getVar('email') ?? ''));
+
+        if (empty($token) || empty($email)) {
+            return $this->respondFail('Token dan email verifikasi wajib diisi', 400);
+        }
+
+        $member = $this->memberModel->where('email', $email)->first();
+        if (!$member) {
+            return $this->respondFail('Akun tidak ditemukan', 404);
+        }
+
+        if ($member['status'] === 'active') {
+            return $this->respondSuccess([
+                'email'            => $email,
+                'already_verified' => true
+            ], 'Akun Anda sudah aktif dan terverifikasi sebelumnya. Silakan login.');
+        }
+
+        if (empty($member['verify_token']) || $member['verify_token'] !== $token) {
+            return $this->respondFail('Tautan verifikasi tidak valid atau telah kedaluwarsa.', 400);
+        }
+
+        $this->memberModel->update($member['memberID'], [
+            'status'       => 'active',
+            'verify_token' => null
+        ]);
+
+        return $this->respondSuccess([
+            'email' => $email
+        ], 'Selamat! Email Anda berhasil diverifikasi. Akun Anda kini telah aktif.');
+    }
+
+    /**
+     * POST /api/auth/resend-verification
+     */
+    public function resendVerification()
+    {
+        $email = strtolower(trim($this->request->getVar('email') ?? ''));
+        if (empty($email)) {
+            return $this->respondFail('Email wajib diisi', 400);
+        }
+
+        $member = $this->memberModel->where('email', $email)->first();
+        if (!$member) {
+            return $this->respondFail('Akun tidak ditemukan', 404);
+        }
+
+        if ($member['status'] === 'active') {
+            return $this->respondFail('Akun ini sudah aktif dan terverifikasi. Silakan langsung login.', 400);
+        }
+
+        $verifyToken = bin2hex(random_bytes(32));
+        $this->memberModel->update($member['memberID'], [
+            'verify_token' => $verifyToken
+        ]);
+
+        $emailService = new \App\Services\EmailService();
+        $emailSent = $emailService->sendAccountVerificationEmail($email, $member['fullname'], $verifyToken);
+
+        return $this->respondSuccess([
+            'email_sent' => $emailSent
+        ], 'Tautan verifikasi baru telah dikirimkan ke email Anda.');
     }
 }

@@ -74,13 +74,21 @@ class EnrollmentModel extends Model
                          ->first();
 
         if ($existing) {
+            if ($existing['status'] === 'rejected') {
+                $this->update($existing['id'], [
+                    'status'      => 'waiting',
+                    'enrolled_at' => date('Y-m-d H:i:s'),
+                    'notes'       => $notes
+                ]);
+                return $this->find($existing['id']);
+            }
             return $existing;
         }
 
         $id = $this->insert([
             'member_id'   => $memberId,
             'program_id'  => $programId,
-            'status'      => 'enrolled',
+            'status'      => 'waiting',
             'enrolled_at' => date('Y-m-d H:i:s'),
             'notes'       => $notes
         ]);

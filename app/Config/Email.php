@@ -6,8 +6,8 @@ use CodeIgniter\Config\BaseConfig;
 
 class Email extends BaseConfig
 {
-    public string $fromEmail  = '';
-    public string $fromName   = '';
+    public string $fromEmail  = 'noreply@datasatu.info';
+    public string $fromName   = 'Datasatu VLC (Vocational Learning Center)';
     public string $recipients = '';
 
     /**
@@ -18,7 +18,7 @@ class Email extends BaseConfig
     /**
      * The mail sending protocol: mail, sendmail, smtp
      */
-    public string $protocol = 'mail';
+    public string $protocol = 'smtp';
 
     /**
      * The server path to Sendmail.
@@ -28,7 +28,7 @@ class Email extends BaseConfig
     /**
      * SMTP Server Address
      */
-    public string $SMTPHost = '';
+    public string $SMTPHost = '172.20.70.53';
 
     /**
      * SMTP Username
@@ -58,7 +58,7 @@ class Email extends BaseConfig
     /**
      * SMTP Encryption. Either tls or ssl
      */
-    public string $SMTPCrypto = 'tls';
+    public string $SMTPCrypto = '';
 
     /**
      * Enable word-wrap
@@ -73,7 +73,7 @@ class Email extends BaseConfig
     /**
      * Type of mail, either 'text' or 'html'
      */
-    public string $mailType = 'text';
+    public string $mailType = 'html';
 
     /**
      * Character set (utf-8, iso-8859-1, etc.)
@@ -114,4 +114,20 @@ class Email extends BaseConfig
      * Enable notify message from server
      */
     public bool $DSN = false;
+
+    public function __construct()
+    {
+        parent::__construct();
+
+        if (env('SMTP_HOST')) {
+            $this->protocol   = 'smtp';
+            $this->SMTPHost   = (string)env('SMTP_HOST');
+            $this->SMTPPort   = (int)(env('SMTP_PORT') ?: 25);
+            $this->SMTPUser   = (string)(env('SMTP_USER') ?: '');
+            $this->SMTPPass   = (string)(env('SMTP_PASS') ?: '');
+            $this->SMTPCrypto = (string)(env('SMTP_CRYPTO') ?: '');
+            $this->fromEmail  = (string)(env('SMTP_FROM') ?: 'noreply@datasatu.info');
+            $this->fromName   = (string)(env('SMTP_FROM_NAME') ?: 'Datasatu VLC (Vocational Learning Center)');
+        }
+    }
 }

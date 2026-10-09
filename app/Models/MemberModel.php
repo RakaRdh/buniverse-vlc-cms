@@ -45,17 +45,20 @@ class MemberModel extends Model
         $email = strtolower(trim($data['email']));
         $hashData = self::generateHash($data['password'], $email);
 
+        $verifyToken = !empty($data['verify_token']) ? $data['verify_token'] : bin2hex(random_bytes(32));
+
         $memberData = [
-            'fullname'    => trim($data['fullname']),
-            'email'       => $email,
-            'password'    => $hashData['hash'],
-            'salt'        => $hashData['salt'],
-            'status'      => 'active',
-            'signupdate'  => date('Y-m-d H:i:s'),
-            'lastlogin'   => date('Y-m-d H:i:s'),
-            'reg_source'  => 'web_vlc',
-            'reg_media'   => 'frontend',
-            'newsletter'  => !empty($data['newsletter']) ? 1 : 0,
+            'fullname'     => trim($data['fullname']),
+            'email'        => $email,
+            'password'     => $hashData['hash'],
+            'salt'         => $hashData['salt'],
+            'status'       => 'inactive',
+            'verify_token' => $verifyToken,
+            'signupdate'   => date('Y-m-d H:i:s'),
+            'lastlogin'    => null,
+            'reg_source'   => 'web_vlc',
+            'reg_media'    => 'frontend',
+            'newsletter'   => !empty($data['newsletter']) ? 1 : 0,
         ];
 
         return $this->insert($memberData);

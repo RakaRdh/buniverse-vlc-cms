@@ -32,10 +32,11 @@
                 <select name="status" onchange="this.form.submit()" 
                         class="w-full text-xs rounded-md border border-border bg-background px-3 py-1.5 focus:outline-none focus:ring-1 focus:ring-[#C41E24]">
                     <option value="">-- Semua Status --</option>
-                    <option value="enrolled" <?= ($status === 'enrolled') ? 'selected' : '' ?>>Enrolled (Baru Daftar)</option>
+                    <option value="waiting" <?= ($status === 'waiting') ? 'selected' : '' ?>>Waiting (Menunggu Verifikasi)</option>
                     <option value="contacted" <?= ($status === 'contacted') ? 'selected' : '' ?>>Contacted (Sudah Dihubungi)</option>
-                    <option value="in_progress" <?= ($status === 'in_progress') ? 'selected' : '' ?>>In Progress (Sedang Belajar)</option>
+                    <option value="active" <?= ($status === 'active' || $status === 'in_progress') ? 'selected' : '' ?>>Active (Terverifikasi)</option>
                     <option value="finished" <?= ($status === 'finished') ? 'selected' : '' ?>>Finished (Selesai)</option>
+                    <option value="rejected" <?= ($status === 'rejected') ? 'selected' : '' ?>>Rejected (Ditolak / Gagal)</option>
                 </select>
             </div>
 
@@ -92,16 +93,18 @@
                                 <td class="px-4 py-3.5">
                                     <?php
                                         $badgeStyle = match($e['status']) {
-                                            'finished'    => 'bg-emerald-500/10 text-emerald-600 border border-emerald-500/20',
-                                            'in_progress' => 'bg-indigo-500/10 text-indigo-600 border border-indigo-500/20',
-                                            'contacted'   => 'bg-sky-500/10 text-sky-600 border border-sky-500/20',
-                                            default       => 'bg-amber-500/10 text-amber-600 border border-amber-500/20'
+                                            'finished'              => 'bg-emerald-500/10 text-emerald-600 border border-emerald-500/20',
+                                            'active', 'in_progress' => 'bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 border border-emerald-500/30',
+                                            'contacted'             => 'bg-sky-500/10 text-sky-600 border border-sky-500/20',
+                                            'rejected'              => 'bg-red-500/10 text-red-600 border border-red-500/20',
+                                            default                 => 'bg-amber-500/10 text-amber-600 border border-amber-500/20'
                                         };
                                         $statusLabel = match($e['status']) {
-                                            'finished'    => 'Finished',
-                                            'in_progress' => 'In Progress',
-                                            'contacted'   => 'Contacted',
-                                            default       => 'Enrolled'
+                                            'finished'              => 'Finished',
+                                            'active', 'in_progress' => 'Active (Verified)',
+                                            'contacted'             => 'Contacted',
+                                            'rejected'              => 'Rejected',
+                                            default                 => 'Waiting (Menunggu)'
                                         };
                                     ?>
                                     <span class="inline-flex items-center rounded-full px-2.5 py-0.5 text-[10px] font-semibold <?= $badgeStyle ?>">
@@ -137,10 +140,11 @@
                                         
                                         <select name="status" 
                                                 class="rounded border border-border bg-background px-2 py-1 text-[11px] font-medium text-foreground focus:outline-none focus:ring-1 focus:ring-[#C41E24]">
-                                            <option value="enrolled" <?= $e['status'] === 'enrolled' ? 'selected' : '' ?>>Enrolled</option>
+                                            <option value="waiting" <?= ($e['status'] === 'waiting' || $e['status'] === 'enrolled') ? 'selected' : '' ?>>Waiting</option>
                                             <option value="contacted" <?= $e['status'] === 'contacted' ? 'selected' : '' ?>>Contacted</option>
-                                            <option value="in_progress" <?= $e['status'] === 'in_progress' ? 'selected' : '' ?>>In Progress</option>
+                                            <option value="active" <?= ($e['status'] === 'active' || $e['status'] === 'in_progress') ? 'selected' : '' ?>>Active (Verified)</option>
                                             <option value="finished" <?= $e['status'] === 'finished' ? 'selected' : '' ?>>Finished</option>
+                                            <option value="rejected" <?= $e['status'] === 'rejected' ? 'selected' : '' ?>>Rejected (Ditolak)</option>
                                         </select>
 
                                         <button type="submit" 
