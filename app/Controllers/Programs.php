@@ -58,6 +58,19 @@ class Programs extends BaseController
             $slug .= '-' . time();
         }
 
+        // Check if an image file was uploaded
+        $imagePath = $this->request->getPost('image') ?: '/img/img-course-1.webp';
+        $uploadedFile = $this->request->getFile('thumbnail_file');
+        if ($uploadedFile && $uploadedFile->isValid() && !$uploadedFile->hasMoved()) {
+            $newName = $uploadedFile->getRandomName();
+            $targetPath = FCPATH . 'uploads/programs';
+            if (!is_dir($targetPath)) {
+                mkdir($targetPath, 0755, true);
+            }
+            $uploadedFile->move($targetPath, $newName);
+            $imagePath = '/uploads/programs/' . $newName;
+        }
+
         $insertData = [
             'name'             => $name,
             'slug'             => $slug,
@@ -69,7 +82,7 @@ class Programs extends BaseController
             'max_participants' => $this->request->getPost('max_participants') ? (int)$this->request->getPost('max_participants') : null,
             'has_certificate'  => $this->request->getPost('has_certificate') ? 1 : 0,
             'status'           => $this->request->getPost('status') ?? 'draft',
-            'image'            => $this->request->getPost('image') ?: '/img/img-course-1.webp',
+            'image'            => $imagePath,
             'created_by'       => session('admin_id'),
         ];
 
@@ -82,7 +95,9 @@ class Programs extends BaseController
             (string)$programId
         );
 
-        return redirect()->to('/programs/edit/' . $programId)->with('success', 'Program berhasil dibuat! Sekarang Anda dapat menambahkan modul materi.');
+        $this->purgeAllCache();
+
+        return redirect()->to('/programs')->with('success', 'Program berhasil dibuat.');
     }
 
     public function edit($id = null)
@@ -115,6 +130,19 @@ class Programs extends BaseController
             return redirect()->back()->withInput()->with('error', 'Nama program wajib diisi.');
         }
 
+        // Check if a new image file was uploaded
+        $imagePath = $this->request->getPost('image') ?: $program['image'];
+        $uploadedFile = $this->request->getFile('thumbnail_file');
+        if ($uploadedFile && $uploadedFile->isValid() && !$uploadedFile->hasMoved()) {
+            $newName = $uploadedFile->getRandomName();
+            $targetPath = FCPATH . 'uploads/programs';
+            if (!is_dir($targetPath)) {
+                mkdir($targetPath, 0755, true);
+            }
+            $uploadedFile->move($targetPath, $newName);
+            $imagePath = '/uploads/programs/' . $newName;
+        }
+
         $updateData = [
             'name'             => $name,
             'short_desc'       => $this->request->getPost('short_desc'),
@@ -125,7 +153,7 @@ class Programs extends BaseController
             'max_participants' => $this->request->getPost('max_participants') ? (int)$this->request->getPost('max_participants') : null,
             'has_certificate'  => $this->request->getPost('has_certificate') ? 1 : 0,
             'status'           => $this->request->getPost('status') ?? 'draft',
-            'image'            => $this->request->getPost('image') ?: $program['image'],
+            'image'            => $imagePath,
         ];
 
         $this->programModel->update($id, $updateData);
@@ -137,7 +165,9 @@ class Programs extends BaseController
             (string)$id
         );
 
-        return redirect()->to('/programs/edit/' . $id)->with('success', 'Informasi program berhasil diperbarui.');
+        $this->purgeAllCache();
+
+        return redirect()->to('/programs')->with('success', 'Informasi program berhasil diperbarui.');
     }
 
     public function delete($id = null)
@@ -159,6 +189,8 @@ class Programs extends BaseController
             "Menghapus program pelatihan: '{$programName}' beserta seluruh modulnya",
             (string)$id
         );
+
+        $this->purgeAllCache();
 
         return redirect()->to('/programs')->with('success', 'Program dan modulnya berhasil dihapus.');
     }
@@ -195,6 +227,8 @@ class Programs extends BaseController
             (string)$moduleId
         );
 
+        $this->purgeAllCache();
+
         return redirect()->to('/programs/edit/' . $programId)->with('success', 'Modul berhasil ditambahkan.');
     }
 
@@ -215,6 +249,8 @@ class Programs extends BaseController
             "Menghapus modul materi '{$moduleTitle}' dari program ID #{$programId}",
             (string)$moduleId
         );
+
+        $this->purgeAllCache();
 
         return redirect()->to('/programs/edit/' . $programId)->with('success', 'Modul berhasil dihapus.');
     }

@@ -73,7 +73,7 @@
             </button>
         </div>
 
-        <form action="/gallery/save" method="POST" class="space-y-4">
+        <form action="/gallery/save" method="POST" enctype="multipart/form-data" class="space-y-4">
             <?= csrf_field() ?>
             <input type="hidden" id="galleryId" name="id" value="">
 
@@ -84,34 +84,22 @@
                        placeholder="Contoh: Suasana Pelatihan 1">
             </div>
 
-            <?php
-            /**
-             * PANDUAN PENYIMPANAN & PENGGUNAAN GAMBAR (IMAGE ASSETS GUIDE):
-             * -------------------------------------------------------------
-             * 1. Lokasi Folder Aset:
-             *    - File gambar statis disimpan di folder publik frontend: `Frontend/public/img/`
-             *    - Contoh nama file: `gallery-1.webp`, `gallery-2.webp`, `img-course-1.webp`, dll.
-             * 2. Format Path di Form CMS:
-             *    - Gunakan path absolut web dimulai dengan slash `/`, contoh: `/img/nama-gambar.webp`
-             *    - Path ini otomatis dapat diakses oleh Frontend (port 8080) maupun CMS (port 8082).
-             * 3. Dukungan Format:
-             *    - Disarankan menggunakan format `.webp` untuk kompresi ringan dan pemuatan instan.
-             *    - Mendukung format `.png`, `.jpg`, `.jpeg`, atau URL gambar CDN luar (https://...).
-             * 4. Dimensi Ideal Galeri:
-             *    - Landscape / persegi membulat (aspek rasio 4:3 atau 16:9, min. resolusi 800x600 px).
-             */
-            ?>
             <div>
-                <label for="galleryImage" class="block text-xs font-semibold text-slate-700 dark:text-slate-200 mb-1">Path / URL Gambar <span class="text-red-500">*</span></label>
-                <input type="text" id="galleryImage" name="image" required
+                <label class="block text-xs font-semibold text-slate-700 dark:text-slate-200 mb-1">Unggah Gambar (ke public/uploads):</label>
+                <input type="file" name="gallery_file" accept="image/*"
+                       class="w-full text-xs text-muted-foreground file:mr-3 file:py-1.5 file:px-3 file:rounded-md file:border-0 file:text-xs file:font-semibold file:bg-[#C41E24] file:text-white hover:file:bg-[#A8151A] cursor-pointer">
+            </div>
+
+            <div>
+                <label for="galleryImage" class="block text-xs font-semibold text-slate-700 dark:text-slate-200 mb-1">Atau Path / URL Gambar:</label>
+                <input type="text" id="galleryImage" name="image"
                        class="w-full px-3.5 py-2 text-xs rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 text-slate-800 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-[#C41E24]"
-                       placeholder="Contoh: /img/gallery-1.webp">
+                       placeholder="Contoh: /uploads/gallery/... atau /img/gallery-1.webp">
                 <div class="flex gap-1.5 mt-2">
                     <button type="button" onclick="document.getElementById('galleryImage').value='/img/gallery-1.webp'" class="text-[10px] px-2.5 py-1 rounded bg-slate-100 dark:bg-slate-700 text-slate-700 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-600 font-medium transition">/img/gallery-1.webp</button>
                     <button type="button" onclick="document.getElementById('galleryImage').value='/img/gallery-2.webp'" class="text-[10px] px-2.5 py-1 rounded bg-slate-100 dark:bg-slate-700 text-slate-700 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-600 font-medium transition">/img/gallery-2.webp</button>
                     <button type="button" onclick="document.getElementById('galleryImage').value='/img/gallery-3.webp'" class="text-[10px] px-2.5 py-1 rounded bg-slate-100 dark:bg-slate-700 text-slate-700 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-600 font-medium transition">/img/gallery-3.webp</button>
                 </div>
-                <p class="text-[10px] text-slate-400 dark:text-slate-500 mt-1.5">File gambar diletakkan pada folder <code>Frontend/public/img/</code> atau gunakan link URL penuh.</p>
             </div>
 
             <div class="grid grid-cols-2 gap-3">

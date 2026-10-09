@@ -31,11 +31,22 @@ class Gallery extends BaseController
         $id = $this->request->getPost('id');
         $title = trim($this->request->getPost('title') ?? '');
         $image = trim($this->request->getPost('image') ?? '');
+        $uploadedFile = $this->request->getFile('gallery_file');
+        if ($uploadedFile && $uploadedFile->isValid() && !$uploadedFile->hasMoved()) {
+            $newName = $uploadedFile->getRandomName();
+            $targetPath = FCPATH . 'uploads/gallery';
+            if (!is_dir($targetPath)) {
+                mkdir($targetPath, 0755, true);
+            }
+            $uploadedFile->move($targetPath, $newName);
+            $image = '/uploads/gallery/' . $newName;
+        }
+
         $sortOrder = (int) ($this->request->getPost('sort_order') ?? 0);
         $isActive = $this->request->getPost('is_active') ? '1' : '0';
 
         if (empty($image)) {
-            return redirect()->back()->with('error', 'Path atau URL gambar wajib diisi.');
+            return redirect()->back()->with('error', 'Path atau upload gambar wajib diisi.');
         }
 
         $saveData = [
@@ -55,6 +66,8 @@ class Gallery extends BaseController
             $msg = 'Item galeri baru berhasil ditambahkan.';
         }
 
+        $this->purgeAllCache();
+
         return redirect()->to('/gallery')->with('success', $msg);
     }
 
@@ -64,6 +77,7 @@ class Gallery extends BaseController
         if ($item) {
             $this->galleryModel->delete($id);
             ActivityLogModel::log('DELETE', 'gallery', "Menghapus item galeri: '{$item['title']}'", (string)$id);
+            $this->purgeAllCache();
             return redirect()->to('/gallery')->with('success', 'Item galeri berhasil dihapus.');
         }
 

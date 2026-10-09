@@ -75,6 +75,9 @@ $routes->group('', ['filter' => 'adminauth'], static function ($routes) {
  * --------------------------------------------------------------------
  */
 $routes->group('api', ['namespace' => 'App\Controllers\Api'], static function ($routes) {
+    // Unified Active Site Data Bundle (Cached vlc_be_active & vlc_be_active_backup)
+    $routes->get('active', 'Active::index');
+
     // Programs
     $routes->get('programs', 'Programs::index');
     $routes->get('programs/(:any)', 'Programs::show/$1');

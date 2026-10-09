@@ -35,7 +35,7 @@
 
             <!-- Thumbnail Management -->
             <div class="rounded-xl border border-border p-4 bg-muted/20 space-y-3">
-                <label class="block text-xs font-semibold text-foreground">Gambar Thumbnail Program <span class="text-red-500">*</span></label>
+                <label class="block text-xs font-semibold text-foreground">Thumbnail Program <span class="text-red-500">*</span></label>
                 
                 <div class="flex flex-col sm:flex-row items-start sm:items-center gap-4">
                     <!-- Live Image Preview Box -->
@@ -47,30 +47,15 @@
                              onerror="this.src='/img/img-course-1.webp'">
                     </div>
 
-                    <!-- Options: Text Input + Presets -->
+                    <!-- Upload File & Hidden Existing Path -->
                     <div class="flex-1 space-y-2.5 w-full">
                         <div>
-                            <span class="block text-[11px] text-muted-foreground mb-1">Path / URL Gambar Thumbnail:</span>
-                            <input type="text" id="programImageInput" name="image" 
-                                   value="<?= esc(old('image') ?? $program['image'] ?? '/img/img-course-1.webp') ?>" 
-                                   oninput="updateThumbnailPreview(this.value)"
-                                   class="w-full px-3 py-2 text-xs rounded-lg border border-border bg-background text-foreground focus:outline-none focus:ring-1 focus:ring-[#C41E24]"
-                                   placeholder="/img/img-course-1.webp atau URL gambar">
-                        </div>
-
-                        <!-- Quick Preset Choices -->
-                        <div>
-                            <span class="block text-[10px] font-bold text-muted-foreground uppercase tracking-wider mb-1.5">Pilih Aset Gambar Cepat:</span>
-                            <div class="flex flex-wrap gap-2">
-                                <button type="button" onclick="setThumbnailPreset('/img/img-course-1.webp')"
-                                        class="px-2.5 py-1 rounded-md text-[11px] border border-border bg-background hover:bg-muted text-foreground transition-colors">
-                                    Course 1 (ESGRC)
-                                </button>
-                                <button type="button" onclick="setThumbnailPreset('/img/img-course-2.webp')"
-                                        class="px-2.5 py-1 rounded-md text-[11px] border border-border bg-background hover:bg-muted text-foreground transition-colors">
-                                    Course 2 (Financial)
-                                </button>
-                            </div>
+                            <span class="block text-[11px] font-semibold text-foreground mb-1">Unggah Berkas Gambar (ke public/uploads):</span>
+                            <input type="file" id="thumbnail_file" name="thumbnail_file" accept="image/png,image/jpeg,image/webp,image/svg+xml"
+                                   onchange="previewUploadedImage(this)"
+                                   class="w-full text-xs text-muted-foreground file:mr-3 file:py-1.5 file:px-3 file:rounded-md file:border-0 file:text-xs file:font-semibold file:bg-[#C41E24] file:text-white hover:file:bg-[#A8151A] cursor-pointer">
+                            <input type="hidden" id="programImageInput" name="image" 
+                                   value="<?= esc(old('image') ?? $program['image'] ?? '/img/img-course-1.webp') ?>">
                         </div>
                     </div>
                 </div>
@@ -153,80 +138,6 @@
         </form>
     </div>
 
-    <?php if ($program): ?>
-    <!-- Module / Syllabus Management (Edit Mode) -->
-    <div class="surface-card p-6 space-y-4">
-        <div class="flex items-center justify-between border-b border-border pb-3">
-            <div>
-                <h2 class="text-sm font-bold text-foreground">Daftar Modul & Silabus Materi</h2>
-                <p class="text-xs text-muted-foreground mt-0.5">Kelola modul pembelajaran yang diajarkan pada program ini.</p>
-            </div>
-        </div>
-
-        <!-- Add Module Form -->
-        <form action="/programs/add-module/<?= $program['id'] ?>" method="POST" class="p-4 rounded-xl border border-border bg-muted/20 space-y-3">
-            <?= csrf_field() ?>
-            <div class="font-semibold text-xs text-foreground flex items-center gap-1.5">
-                <i data-lucide="plus-circle" class="size-4 text-[#C41E24]"></i>
-                <span>Tambah Modul Materi Baru</span>
-            </div>
-            <div class="grid grid-cols-1 sm:grid-cols-12 gap-3">
-                <div class="sm:col-span-6">
-                    <input type="text" name="module_title" placeholder="Judul Modul (misal: Modul 1: Pengenalan ESG)" required
-                           class="w-full px-3 py-2 text-xs rounded-lg border border-border bg-background text-foreground focus:outline-none focus:ring-1 focus:ring-[#C41E24]">
-                </div>
-                <div class="sm:col-span-4">
-                    <input type="text" name="module_description" placeholder="Deskripsi Singkat Modul"
-                           class="w-full px-3 py-2 text-xs rounded-lg border border-border bg-background text-foreground focus:outline-none focus:ring-1 focus:ring-[#C41E24]">
-                </div>
-                <div class="sm:col-span-2">
-                    <button type="submit" class="w-full h-full min-h-[34px] rounded-lg bg-[#C41E24] hover:bg-[#A8151A] text-white text-xs font-semibold flex items-center justify-center gap-1.5 transition-colors cursor-pointer">
-                        <i data-lucide="plus" class="size-3.5"></i>
-                        <span>Tambah</span>
-                    </button>
-                </div>
-            </div>
-        </form>
-
-        <!-- Module List Table -->
-        <div class="overflow-x-auto rounded-lg border border-border">
-            <table class="w-full text-left text-xs">
-                <thead class="bg-muted/40 text-muted-foreground uppercase text-[10px] tracking-wider border-b border-border">
-                    <tr>
-                        <th class="px-4 py-2.5 w-12 text-center">Urutan</th>
-                        <th class="px-4 py-2.5">Judul Modul</th>
-                        <th class="px-4 py-2.5">Deskripsi</th>
-                        <th class="px-4 py-2.5 w-20 text-center">Aksi</th>
-                    </tr>
-                </thead>
-                <tbody class="divide-y divide-border">
-                    <?php if (empty($modules)): ?>
-                        <tr>
-                            <td colspan="4" class="px-4 py-6 text-center text-muted-foreground">
-                                Belum ada modul materi yang ditambahkan.
-                            </td>
-                        </tr>
-                    <?php else: ?>
-                        <?php foreach ($modules as $mod): ?>
-                            <tr class="hover:bg-muted/20 transition-colors">
-                                <td class="px-4 py-3 text-center font-medium text-foreground"><?= esc($mod['sort_order']) ?></td>
-                                <td class="px-4 py-3 font-semibold text-foreground"><?= esc($mod['title']) ?></td>
-                                <td class="px-4 py-3 text-muted-foreground"><?= esc($mod['description'] ?? '-') ?></td>
-                                <td class="px-4 py-3 text-center">
-                                    <a href="/programs/delete-module/<?= $mod['id'] ?>" 
-                                       onclick="return confirm('Apakah Anda yakin ingin menghapus modul ini?')"
-                                       class="inline-flex size-7 items-center justify-center rounded-md text-red-500 hover:bg-red-500/10 transition-colors" title="Hapus Modul">
-                                        <i data-lucide="trash-2" class="size-3.5"></i>
-                                    </a>
-                                </td>
-                            </tr>
-                        <?php endforeach; ?>
-                    <?php endif; ?>
-                </tbody>
-            </table>
-        </div>
-    </div>
-    <?php endif; ?>
 </div>
 
 <!-- Load CKEditor 4 WYSIWYG (Contek dari Revamp CMS Investor) -->
@@ -244,9 +155,14 @@
         }
     }
 
-    function setThumbnailPreset(path) {
-        document.getElementById('programImageInput').value = path;
-        updateThumbnailPreview(path);
+    function previewUploadedImage(input) {
+        if (input.files && input.files[0]) {
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                document.getElementById('programImagePreview').src = e.target.result;
+            };
+            reader.readAsDataURL(input.files[0]);
+        }
     }
 
     document.addEventListener('DOMContentLoaded', function () {

@@ -49,7 +49,6 @@
                     <tr>
                         <th class="px-4 py-3 font-semibold">Nama Program</th>
                         <th class="px-4 py-3 font-semibold">Slug</th>
-                        <th class="px-4 py-3 font-semibold text-center">Modul</th>
                         <th class="px-4 py-3 font-semibold text-center">Peserta</th>
                         <th class="px-4 py-3 font-semibold">Durasi</th>
                         <th class="px-4 py-3 font-semibold">Status</th>
@@ -59,7 +58,7 @@
                 <tbody class="divide-y divide-border">
                     <?php if (empty($programs)): ?>
                         <tr>
-                            <td colspan="7" class="px-4 py-8 text-center text-muted-foreground">
+                            <td colspan="6" class="px-4 py-8 text-center text-muted-foreground">
                                 Tidak ada program yang sesuai kriteria pencarian.
                             </td>
                         </tr>
@@ -72,12 +71,6 @@
                                 </td>
                                 <td class="px-4 py-3.5 text-muted-foreground font-mono text-[11px]">
                                     <?= esc($p['slug']) ?>
-                                </td>
-                                <td class="px-4 py-3.5 text-center font-medium">
-                                    <span class="inline-flex items-center gap-1 rounded-md bg-muted px-2 py-0.5">
-                                        <i data-lucide="book" class="size-3 text-muted-foreground"></i>
-                                        <span><?= $p['modules_count'] ?></span>
-                                    </span>
                                 </td>
                                 <td class="px-4 py-3.5 text-center font-medium">
                                     <span class="inline-flex items-center gap-1 rounded-md bg-blue-500/10 text-blue-600 dark:text-blue-400 px-2 py-0.5">
@@ -105,7 +98,7 @@
                                 </td>
                                 <td class="px-4 py-3.5 text-right">
                                     <div class="inline-flex items-center gap-1">
-                                        <a href="/programs/edit/<?= $p['id'] ?>" class="p-1.5 rounded-md text-muted-foreground hover:text-foreground hover:bg-muted transition-colors" title="Edit Program & Modul">
+                                        <a href="/programs/edit/<?= $p['id'] ?>" class="p-1.5 rounded-md text-muted-foreground hover:text-foreground hover:bg-muted transition-colors" title="Edit Program">
                                             <i data-lucide="edit" class="size-4"></i>
                                         </a>
                                         <a href="/programs/delete/<?= $p['id'] ?>" onclick="return confirm('Apakah Anda yakin ingin menghapus program ini beserta modulnya?');" class="p-1.5 rounded-md text-muted-foreground hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-950/30 transition-colors" title="Hapus">

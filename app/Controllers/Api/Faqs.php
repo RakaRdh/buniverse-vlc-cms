@@ -14,10 +14,15 @@ class Faqs extends BaseApiController
     }
 
     /**
-     * GET /api/faqs
+     * GET /api/faqs (Reads from unified vlc_be_active bundle)
      */
     public function index()
     {
+        $active = cache('vlc_be_active') ?? cache('vlc_be_active_backup');
+        if (!empty($active['faqs'])) {
+            return $this->respondSuccess($active['faqs'], 'FAQs fetched successfully');
+        }
+
         $faqs = $this->faqModel->getActiveFaqs();
         return $this->respondSuccess($faqs, 'FAQs fetched successfully');
     }

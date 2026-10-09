@@ -55,6 +55,8 @@ class Faq extends BaseController
             $msg = 'FAQ baru berhasil ditambahkan.';
         }
 
+        $this->purgeAllCache();
+
         return redirect()->to('/faq')->with('success', $msg);
     }
 
@@ -64,6 +66,7 @@ class Faq extends BaseController
         if ($item) {
             $this->faqModel->delete($id);
             ActivityLogModel::log('DELETE', 'faq', "Menghapus FAQ: '{$item['question']}'", (string)$id);
+            $this->purgeAllCache();
             return redirect()->to('/faq')->with('success', 'FAQ berhasil dihapus.');
         }
 

@@ -59,4 +59,52 @@ abstract class BaseController extends Controller
         //session();
         //$this->domainsModel = new DomainsModel();
     }
+
+    /**
+     * Invalidate internal CMS/BE cache (deletes vlc_be_active, keeps vlc_be_active_backup)
+     */
+    protected function purgeBackendCache(): void
+    {
+        try {
+            cache()->delete('vlc_be_active');
+            cache()->delete('vlc_be_programs_active');
+            cache()->delete('vlc_be_galleries_active');
+            cache()->delete('vlc_be_faqs_active');
+        } catch (\Throwable $e) {
+            log_message('error', 'purgeBackendCache failed: ' . $e->getMessage());
+        }
+    }
+
+    /**
+     * Invalidate Frontend live cache via Webhook (matching IDS architecture)
+     */
+    protected function purgeFrontendCache(): void
+    {
+        $frontendUrls = [
+            getenv('FRONTEND_INTERNAL_URL') ?: null,
+            'http://localhost:8080/api/clear-cache',
+            'http://127.0.0.1:8080/api/clear-cache',
+            'http://[::1]:8080/api/clear-cache',
+        ];
+
+        foreach (array_filter($frontendUrls) as $url) {
+            try {
+                $client = \Config\Services::curlrequest(['timeout' => 0.8]);
+                $client->get($url, ['http_errors' => false]);
+                break;
+            } catch (\Throwable $e) {
+                // Continue next URL fallback silently
+            }
+        }
+    }
+
+    /**
+     * Purge both Backend & Frontend caches in one call
+     */
+    protected function purgeAllCache(): void
+    {
+        $this->purgeBackendCache();
+        $this->purgeFrontendCache();
+    }
 }
+
