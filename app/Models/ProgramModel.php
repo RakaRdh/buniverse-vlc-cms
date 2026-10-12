@@ -47,6 +47,15 @@ class ProgramModel extends Model
                     ->countAllResults();
                 $p['modules_count'] = $count;
             }
+
+            // Hitung peserta yang statusnya active / in_progress
+            $activeCount = $this->db->table('tblprogram_enrollment')
+                ->where('program_id', $p['id'])
+                ->whereIn('status', ['active', 'in_progress'])
+                ->countAllResults();
+            $p['active_participants_count'] = $activeCount;
+            $maxCap = !empty($p['max_participants']) ? (int)$p['max_participants'] : 0;
+            $p['is_full'] = ($maxCap > 0 && $activeCount >= $maxCap);
         }
 
         return $programs;
@@ -72,6 +81,16 @@ class ProgramModel extends Model
         $program['modules_count'] = (!empty($program['modules']) && (int)$program['modules'] > 0)
             ? (int)$program['modules']
             : count($modules);
+
+        // Hitung peserta aktif
+        $activeCount = $this->db->table('tblprogram_enrollment')
+            ->where('program_id', $program['id'])
+            ->whereIn('status', ['active', 'in_progress'])
+            ->countAllResults();
+        $program['active_participants_count'] = $activeCount;
+        $maxCap = !empty($program['max_participants']) ? (int)$program['max_participants'] : 0;
+        $program['is_full'] = ($maxCap > 0 && $activeCount >= $maxCap);
+
         return $program;
     }
 

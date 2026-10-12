@@ -19,10 +19,10 @@
 
     <!-- Filter Toolbar -->
     <div class="surface-card p-4">
-        <form method="GET" action="/activity-log" class="grid grid-cols-1 sm:grid-cols-12 gap-3">
+        <form id="activityFilterForm" method="GET" action="/activity-log" class="grid grid-cols-1 sm:grid-cols-12 gap-3" onsubmit="return false;">
             <!-- Filter Modul -->
             <div class="sm:col-span-3">
-                <select name="module" onchange="this.form.submit()" 
+                <select name="module" id="filterModule"
                         class="w-full text-xs rounded-md border border-border bg-background px-3 py-1.5 focus:outline-none focus:ring-1 focus:ring-[#C41E24]">
                     <option value="">-- Semua Modul --</option>
                     <option value="enrollments" <?= ($module === 'enrollments') ? 'selected' : '' ?>>Enrollments</option>
@@ -35,7 +35,7 @@
 
             <!-- Filter Aksi -->
             <div class="sm:col-span-3">
-                <select name="action" onchange="this.form.submit()" 
+                <select name="action" id="filterAction"
                         class="w-full text-xs rounded-md border border-border bg-background px-3 py-1.5 focus:outline-none focus:ring-1 focus:ring-[#C41E24]">
                     <option value="">-- Semua Aksi (CRUD) --</option>
                     <option value="STATUS_CHANGE" <?= ($action === 'STATUS_CHANGE') ? 'selected' : '' ?>>STATUS_CHANGE</option>
@@ -49,7 +49,7 @@
 
             <!-- Keyword Search -->
             <div class="sm:col-span-6 relative">
-                <input type="text" name="q" value="<?= esc($keyword ?? '') ?>" placeholder="Cari keterangan, nama admin, atau member..."
+                <input type="text" name="q" id="filterKeyword" value="<?= esc($keyword ?? '') ?>" placeholder="Cari keterangan, nama admin, atau member..."
                        class="w-full pl-8 pr-3 py-1.5 text-xs rounded-md border border-border bg-background focus:outline-none focus:ring-1 focus:ring-[#C41E24]">
                 <i data-lucide="search" class="size-3.5 absolute left-2.5 top-1/2 -translate-y-1/2 text-muted-foreground"></i>
             </div>
@@ -57,7 +57,7 @@
     </div>
 
     <!-- Table -->
-    <div class="surface-card overflow-hidden">
+    <div id="activityTableWrapper" class="surface-card overflow-hidden transition-opacity duration-150">
         <div class="overflow-x-auto">
             <table class="w-full text-left text-xs">
                 <thead class="bg-muted/50 border-b border-border text-muted-foreground uppercase text-[10px] tracking-wider">
@@ -129,5 +129,72 @@
         </div>
     </div>
 </div>
+
+<script>
+    (function initActivityLogAjaxFilter() {
+        const moduleSelect = document.getElementById('filterModule');
+        const actionSelect = document.getElementById('filterAction');
+        const keywordInput = document.getElementById('filterKeyword');
+        const tableWrapper = document.getElementById('activityTableWrapper');
+
+        if (!moduleSelect || !actionSelect || !keywordInput || !tableWrapper) return;
+
+        let debounceTimer = null;
+        let activeAbortCtrl = null;
+
+        function fetchFilteredLogs() {
+            const mod = moduleSelect.value;
+            const act = actionSelect.value;
+            const kw = keywordInput.value.trim();
+
+            const params = new URLSearchParams();
+            if (mod) params.set('module', mod);
+            if (act) params.set('action', act);
+            if (kw) params.set('q', kw);
+
+            const newUrl = '/activity-log' + (params.toString() ? '?' + params.toString() : '');
+            window.history.replaceState(null, '', newUrl);
+
+            if (activeAbortCtrl) {
+                activeAbortCtrl.abort();
+            }
+            activeAbortCtrl = new AbortController();
+
+            tableWrapper.style.opacity = '0.5';
+
+            fetch(newUrl, {
+                signal: activeAbortCtrl.signal,
+                headers: { 'X-Requested-With': 'XMLHttpRequest' }
+            })
+            .then(res => res.text())
+            .then(html => {
+                const parser = new DOMParser();
+                const doc = parser.parseFromString(html, 'text/html');
+                const newTable = doc.getElementById('activityTableWrapper');
+                if (newTable) {
+                    tableWrapper.innerHTML = newTable.innerHTML;
+                }
+                tableWrapper.style.opacity = '1';
+                if (window.lucide) {
+                    lucide.createIcons();
+                }
+            })
+            .catch(err => {
+                if (err.name !== 'AbortError') {
+                    console.error('Filter fetch error:', err);
+                    tableWrapper.style.opacity = '1';
+                }
+            });
+        }
+
+        moduleSelect.addEventListener('change', fetchFilteredLogs);
+        actionSelect.addEventListener('change', fetchFilteredLogs);
+
+        keywordInput.addEventListener('input', function() {
+            clearTimeout(debounceTimer);
+            debounceTimer = setTimeout(fetchFilteredLogs, 300);
+        });
+    })();
+</script>
 
 <?= $this->endSection() ?>

@@ -46,6 +46,8 @@ $routes->group('', ['filter' => 'adminauth'], static function ($routes) {
     // Enrollments
     $routes->get('enrollments', 'Enrollments::index');
     $routes->post('enrollments/update-status/(:num)', 'Enrollments::updateStatus/$1');
+    $routes->post('enrollments/check-member', 'Enrollments::checkMember');
+    $routes->post('enrollments/manual-enroll', 'Enrollments::manualEnroll');
 
     // Members
     $routes->get('members', 'Members::index');

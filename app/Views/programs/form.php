@@ -77,9 +77,26 @@
                           placeholder="Tujuan pelatihan, topik yang dibahas, dan instruktur..."><?= esc(old('description') ?? $program['description'] ?? '') ?></textarea>
             </div>
 
-            <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+            <div class="grid grid-cols-1 sm:grid-cols-4 gap-4">
                 <div>
-                    <label for="duration" class="block text-xs font-semibold text-foreground mb-1.5">Durasi / Format Belajar</label>
+                    <label for="start_date" class="block text-xs font-semibold text-foreground mb-1.5">Tanggal Mulai Kelas</label>
+                    <input type="date" id="start_date" name="start_date" 
+                           value="<?= esc(old('start_date') ?? (!empty($program['start_date']) ? date('Y-m-d', strtotime($program['start_date'])) : '')) ?>"
+                           class="w-full px-3 py-2 text-xs rounded-lg border border-border bg-background text-foreground focus:outline-none focus:ring-1 focus:ring-[#C41E24]">
+                </div>
+
+                <div>
+                    <label for="end_date" class="block text-xs font-semibold text-foreground mb-1.5">Tanggal Selesai Kelas</label>
+                    <input type="date" id="end_date" name="end_date" 
+                           value="<?= esc(old('end_date') ?? (!empty($program['end_date']) ? date('Y-m-d', strtotime($program['end_date'])) : '')) ?>"
+                           class="w-full px-3 py-2 text-xs rounded-lg border border-border bg-background text-foreground focus:outline-none focus:ring-1 focus:ring-[#C41E24]">
+                </div>
+
+                <div>
+                    <label for="duration" class="block text-xs font-semibold text-foreground mb-1.5">
+                        Durasi / Format Belajar
+                        <span class="text-[10px] text-muted-foreground font-normal">(Otomatis/Manual)</span>
+                    </label>
                     <input type="text" id="duration" name="duration" value="<?= esc(old('duration') ?? $program['duration'] ?? '3 Hari') ?>"
                            class="w-full px-3 py-2 text-xs rounded-lg border border-border bg-background text-foreground focus:outline-none focus:ring-1 focus:ring-[#C41E24]"
                            placeholder="Contoh: 3 Hari / Hybrid">
@@ -92,14 +109,8 @@
                            placeholder="Contoh: 12 (0 = hitung otomatis)">
                     <p class="text-[10px] text-muted-foreground mt-1">Jika > 0, angka ini akan dipakai di kartu program.</p>
                 </div>
-
-                <div>
-                    <label for="schedule_info" class="block text-xs font-semibold text-foreground mb-1.5">Jadwal / Batch Info</label>
-                    <input type="text" id="schedule_info" name="schedule_info" value="<?= esc(old('schedule_info') ?? $program['schedule_info'] ?? 'Batch 1 — Oktober 2026') ?>"
-                           class="w-full px-3 py-2 text-xs rounded-lg border border-border bg-background text-foreground focus:outline-none focus:ring-1 focus:ring-[#C41E24]"
-                           placeholder="Contoh: Batch 1 — Oktober 2026">
-                </div>
             </div>
+
 
             <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
                 <div>
@@ -118,10 +129,19 @@
                 </div>
 
                 <div>
-                    <label for="price" class="block text-xs font-semibold text-foreground mb-1.5">Harga / Investasi (Rp)</label>
-                    <input type="number" id="price" name="price" value="<?= esc(old('price') ?? $program['price'] ?? 0) ?>"
-                           class="w-full px-3 py-2 text-xs rounded-lg border border-border bg-background text-foreground focus:outline-none focus:ring-1 focus:ring-[#C41E24]"
-                           placeholder="0">
+                    <label for="price_display" class="block text-xs font-semibold text-foreground mb-1.5">
+                        Harga / Investasi
+                        <span class="text-[10px] text-muted-foreground font-normal">(Kosongkan jika tidak ditampilkan)</span>
+                    </label>
+                    <div class="relative">
+                        <span class="absolute left-3 top-1/2 -translate-y-1/2 text-xs font-bold text-muted-foreground">Rp</span>
+                        <input type="text" id="price_display"
+                               value="<?= (isset($program['price']) && $program['price'] !== null && $program['price'] !== '' && (float)$program['price'] > 0) ? number_format((float)$program['price'], 0, ',', '.') : (old('price') ? number_format((float)old('price'), 0, ',', '.') : '') ?>"
+                               class="w-full pl-9 pr-3 py-2 text-xs rounded-lg border border-border bg-background text-foreground focus:outline-none focus:ring-1 focus:ring-[#C41E24]"
+                               placeholder="Contoh: 1.500.000 (Opsional)">
+                        <input type="hidden" id="price" name="price" value="<?= esc(old('price') ?? (isset($program['price']) && $program['price'] !== null && (float)$program['price'] > 0 ? (float)$program['price'] : '')) ?>">
+                    </div>
+                    <p class="text-[10px] text-muted-foreground mt-1">Jika dikosongkan, tag harga tidak akan tampil di frontend.</p>
                 </div>
             </div>
 
@@ -277,6 +297,51 @@
                 form.addEventListener('submit', function () {
                     if (programCkEditor) {
                         programCkEditor.updateElement();
+                    }
+                });
+            }
+
+            // Auto-calculate Duration from Date Pickers
+            const startDateInput = document.getElementById('start_date');
+            const endDateInput = document.getElementById('end_date');
+            const durationInput = document.getElementById('duration');
+
+            function updateDatesCalculation() {
+                const startVal = startDateInput.value;
+                const endVal = endDateInput.value;
+                if (!startVal) return;
+
+                const startDate = new Date(startVal);
+                if (endVal) {
+                    const endDate = new Date(endVal);
+                    if (endDate >= startDate) {
+                        const diffTime = Math.abs(endDate - startDate);
+                        const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24)) + 1;
+                        if (!durationInput.value || durationInput.value.includes('Hari')) {
+                            durationInput.value = `${diffDays} Hari`;
+                        }
+                    }
+                }
+            }
+
+            if (startDateInput && endDateInput) {
+                startDateInput.addEventListener('change', updateDatesCalculation);
+                endDateInput.addEventListener('change', updateDatesCalculation);
+            }
+
+            // Price Format Handler (Rupiah thousand separator)
+            const priceDisplay = document.getElementById('price_display');
+            const priceHidden = document.getElementById('price');
+            if (priceDisplay && priceHidden) {
+                priceDisplay.addEventListener('input', function(e) {
+                    // Extract only numbers
+                    let val = this.value.replace(/\D/g, '');
+                    if (val === '') {
+                        priceHidden.value = '';
+                        this.value = '';
+                    } else {
+                        priceHidden.value = val;
+                        this.value = new Intl.NumberFormat('id-ID').format(val);
                     }
                 });
             }

@@ -13,24 +13,24 @@
 
     <!-- Filter & Search Toolbar -->
     <div class="surface-card p-4">
-        <form method="GET" action="/members" class="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-            <div class="flex items-center gap-2 flex-wrap">
-                <a href="/members" class="rounded-md px-3 py-1.5 text-xs font-medium transition-colors <?= empty($status) ? 'bg-[#C41E24] text-white' : 'text-muted-foreground hover:bg-muted' ?>">
+        <form id="membersFilterForm" method="GET" action="/members" class="flex flex-col sm:flex-row sm:items-center justify-between gap-3" onsubmit="return false;">
+            <div id="membersStatusTabs" class="flex items-center gap-2 flex-wrap">
+                <a href="/members" data-status="" class="filter-tab-btn rounded-md px-3 py-1.5 text-xs font-medium transition-colors <?= empty($status) ? 'bg-[#C41E24] text-white' : 'text-muted-foreground hover:bg-muted' ?>">
                     Semua
                 </a>
-                <a href="/members?status=active" class="rounded-md px-3 py-1.5 text-xs font-medium transition-colors <?= $status === 'active' ? 'bg-[#C41E24] text-white' : 'text-muted-foreground hover:bg-muted' ?>">
+                <a href="/members?status=active" data-status="active" class="filter-tab-btn rounded-md px-3 py-1.5 text-xs font-medium transition-colors <?= $status === 'active' ? 'bg-[#C41E24] text-white' : 'text-muted-foreground hover:bg-muted' ?>">
                     Aktif
                 </a>
-                <a href="/members?status=inactive" class="rounded-md px-3 py-1.5 text-xs font-medium transition-colors <?= $status === 'inactive' ? 'bg-[#C41E24] text-white' : 'text-muted-foreground hover:bg-muted' ?>">
+                <a href="/members?status=inactive" data-status="inactive" class="filter-tab-btn rounded-md px-3 py-1.5 text-xs font-medium transition-colors <?= $status === 'inactive' ? 'bg-[#C41E24] text-white' : 'text-muted-foreground hover:bg-muted' ?>">
                     Inactive
                 </a>
-                <a href="/members?status=banned" class="rounded-md px-3 py-1.5 text-xs font-medium transition-colors <?= $status === 'banned' ? 'bg-[#C41E24] text-white' : 'text-muted-foreground hover:bg-muted' ?>">
+                <a href="/members?status=banned" data-status="banned" class="filter-tab-btn rounded-md px-3 py-1.5 text-xs font-medium transition-colors <?= $status === 'banned' ? 'bg-[#C41E24] text-white' : 'text-muted-foreground hover:bg-muted' ?>">
                     Banned
                 </a>
             </div>
 
             <div class="relative w-full sm:w-64">
-                <input type="text" name="q" value="<?= esc($keyword ?? '') ?>" placeholder="Cari nama, email, no telp..."
+                <input type="text" name="q" id="membersSearchInput" value="<?= esc($keyword ?? '') ?>" placeholder="Cari nama, email, no telp..."
                        class="w-full pl-8 pr-3 py-1.5 text-xs rounded-md border border-border bg-background focus:outline-none focus:ring-1 focus:ring-[#C41E24]">
                 <i data-lucide="search" class="size-3.5 absolute left-2.5 top-1/2 -translate-y-1/2 text-muted-foreground"></i>
             </div>
@@ -38,7 +38,7 @@
     </div>
 
     <!-- Table -->
-    <div class="surface-card overflow-hidden">
+    <div id="membersTableWrapper" class="surface-card overflow-hidden transition-opacity duration-150">
         <div class="overflow-x-auto">
             <table class="w-full text-left text-xs">
                 <thead class="bg-muted/50 border-b border-border text-muted-foreground uppercase text-[10px] tracking-wider">
@@ -115,5 +115,86 @@
         </div>
     </div>
 </div>
+
+<script>
+    (function initMembersAjaxFilter() {
+        const tabsContainer = document.getElementById('membersStatusTabs');
+        const searchInput = document.getElementById('membersSearchInput');
+        const tableWrapper = document.getElementById('membersTableWrapper');
+
+        if (!tabsContainer || !searchInput || !tableWrapper) return;
+
+        let currentStatus = '<?= esc($status ?? '') ?>';
+        let debounceTimer = null;
+        let activeAbortCtrl = null;
+
+        function updateTabStyles(activeStatus) {
+            tabsContainer.querySelectorAll('.filter-tab-btn').forEach(btn => {
+                const stat = btn.getAttribute('data-status');
+                if (stat === activeStatus) {
+                    btn.className = 'filter-tab-btn rounded-md px-3 py-1.5 text-xs font-medium transition-colors bg-[#C41E24] text-white';
+                } else {
+                    btn.className = 'filter-tab-btn rounded-md px-3 py-1.5 text-xs font-medium transition-colors text-muted-foreground hover:bg-muted';
+                }
+            });
+        }
+
+        function fetchFilteredMembers() {
+            const kw = searchInput.value.trim();
+            const params = new URLSearchParams();
+            if (currentStatus) params.set('status', currentStatus);
+            if (kw) params.set('q', kw);
+
+            const newUrl = '/members' + (params.toString() ? '?' + params.toString() : '');
+            window.history.replaceState(null, '', newUrl);
+
+            if (activeAbortCtrl) {
+                activeAbortCtrl.abort();
+            }
+            activeAbortCtrl = new AbortController();
+
+            tableWrapper.style.opacity = '0.5';
+
+            fetch(newUrl, {
+                signal: activeAbortCtrl.signal,
+                headers: { 'X-Requested-With': 'XMLHttpRequest' }
+            })
+            .then(res => res.text())
+            .then(html => {
+                const parser = new DOMParser();
+                const doc = parser.parseFromString(html, 'text/html');
+                const newTable = doc.getElementById('membersTableWrapper');
+                if (newTable) {
+                    tableWrapper.innerHTML = newTable.innerHTML;
+                }
+                tableWrapper.style.opacity = '1';
+                if (window.lucide) {
+                    lucide.createIcons();
+                }
+            })
+            .catch(err => {
+                if (err.name !== 'AbortError') {
+                    console.error('Filter fetch error:', err);
+                    tableWrapper.style.opacity = '1';
+                }
+            });
+        }
+
+        tabsContainer.addEventListener('click', function(e) {
+            const tabBtn = e.target.closest('.filter-tab-btn');
+            if (tabBtn) {
+                e.preventDefault();
+                currentStatus = tabBtn.getAttribute('data-status') || '';
+                updateTabStyles(currentStatus);
+                fetchFilteredMembers();
+            }
+        });
+
+        searchInput.addEventListener('input', function() {
+            clearTimeout(debounceTimer);
+            debounceTimer = setTimeout(fetchFilteredMembers, 300);
+        });
+    })();
+</script>
 
 <?= $this->endSection() ?>

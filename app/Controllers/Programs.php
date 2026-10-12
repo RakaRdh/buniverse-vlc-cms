@@ -71,15 +71,20 @@ class Programs extends BaseController
             $imagePath = '/uploads/programs/' . $newName;
         }
 
+        $priceRaw = $this->request->getPost('price');
+        $price = ($priceRaw !== null && $priceRaw !== '') ? (float)$priceRaw : null;
+
         $insertData = [
             'name'             => $name,
             'slug'             => $slug,
             'short_desc'       => $this->request->getPost('short_desc'),
             'description'      => $this->request->getPost('description'),
-            'price'            => (float) ($this->request->getPost('price') ?? 0),
+            'price'            => $price,
             'duration'         => $this->request->getPost('duration'),
             'modules'          => $this->request->getPost('modules') ? (int)$this->request->getPost('modules') : 0,
-            'schedule_info'    => $this->request->getPost('schedule_info'),
+            'start_date'       => $this->request->getPost('start_date') ?: null,
+            'end_date'         => $this->request->getPost('end_date') ?: null,
+            'schedule_info'    => $this->request->getPost('schedule_info') ?: null,
             'max_participants' => $this->request->getPost('max_participants') ? (int)$this->request->getPost('max_participants') : null,
             'has_certificate'  => $this->request->getPost('has_certificate') ? 1 : 0,
             'status'           => $this->request->getPost('status') ?? 'draft',
@@ -144,14 +149,19 @@ class Programs extends BaseController
             $imagePath = '/uploads/programs/' . $newName;
         }
 
+        $priceRaw = $this->request->getPost('price');
+        $price = ($priceRaw !== null && $priceRaw !== '') ? (float)$priceRaw : null;
+
         $updateData = [
             'name'             => $name,
             'short_desc'       => $this->request->getPost('short_desc'),
             'description'      => $this->request->getPost('description'),
-            'price'            => (float) ($this->request->getPost('price') ?? 0),
+            'price'            => $price,
             'duration'         => $this->request->getPost('duration'),
             'modules'          => $this->request->getPost('modules') ? (int)$this->request->getPost('modules') : 0,
-            'schedule_info'    => $this->request->getPost('schedule_info'),
+            'start_date'       => $this->request->getPost('start_date') ?: null,
+            'end_date'         => $this->request->getPost('end_date') ?: null,
+            'schedule_info'    => $this->request->getPost('schedule_info') ?: null,
             'max_participants' => $this->request->getPost('max_participants') ? (int)$this->request->getPost('max_participants') : null,
             'has_certificate'  => $this->request->getPost('has_certificate') ? 1 : 0,
             'status'           => $this->request->getPost('status') ?? 'draft',

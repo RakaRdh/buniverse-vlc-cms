@@ -74,8 +74,18 @@ class EnrollmentModel extends Model
                          ->first();
 
         if ($existing) {
-            if ($existing['status'] === 'rejected') {
+            // User banned from this program cannot re-enroll
+            if ($existing['status'] === 'banned') {
                 return false;
+            }
+            // If rejected previously, allow re-enrolling by updating to waiting
+            if ($existing['status'] === 'rejected') {
+                $this->update($existing['id'], [
+                    'status'      => 'waiting',
+                    'enrolled_at' => date('Y-m-d H:i:s'),
+                    'notes'       => $notes
+                ]);
+                return $this->find($existing['id']);
             }
             return $existing;
         }

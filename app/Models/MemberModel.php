@@ -66,14 +66,19 @@ class MemberModel extends Model
 
     public function getMembersWithProfiles($status = null, $keyword = null)
     {
-        $builder = $this->db->table('tblmember m')
-            ->select('m.memberID, m.fullname, m.email, m.status, m.signupdate, m.lastlogin,
+        $builder = $this->db->table('tblprofile p')
+            ->select('COALESCE(m.memberID, p.member_id) as memberID, 
+                      COALESCE(m.fullname, CONCAT("Peserta #", p.member_id)) as fullname, 
+                      COALESCE(m.email, "-") as email, 
+                      COALESCE(m.status, "active") as status, 
+                      COALESCE(m.signupdate, p.created_at) as signupdate, 
+                      m.lastlogin,
                       p.phone, p.address,
                       COUNT(e.id) as enrolled_count')
-            ->join('tblprofile p', 'p.member_id = m.memberID', 'left')
-            ->join('tblprogram_enrollment e', 'e.member_id = m.memberID', 'left')
-            ->groupBy('m.memberID')
-            ->orderBy('m.memberID', 'DESC');
+            ->join('tblmember m', 'm.memberID = p.member_id', 'left')
+            ->join('tblprogram_enrollment e', 'e.member_id = p.member_id', 'left')
+            ->groupBy('p.id')
+            ->orderBy('p.id', 'DESC');
 
         if (!empty($status)) {
             $builder->where('m.status', $status);
