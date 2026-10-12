@@ -19,6 +19,7 @@ class ProgramModel extends Model
         'image',
         'price',
         'duration',
+        'modules',
         'schedule_info',
         'max_participants',
         'has_certificate',
@@ -38,10 +39,14 @@ class ProgramModel extends Model
                          ->findAll();
 
         foreach ($programs as &$p) {
-            $count = $this->db->table('tblprogram_module')
-                ->where('program_id', $p['id'])
-                ->countAllResults();
-            $p['modules_count'] = $count;
+            if (!empty($p['modules']) && (int)$p['modules'] > 0) {
+                $p['modules_count'] = (int)$p['modules'];
+            } else {
+                $count = $this->db->table('tblprogram_module')
+                    ->where('program_id', $p['id'])
+                    ->countAllResults();
+                $p['modules_count'] = $count;
+            }
         }
 
         return $programs;
@@ -64,7 +69,9 @@ class ProgramModel extends Model
             ->getResultArray();
 
         $program['modules'] = $modules;
-        $program['modules_count'] = count($modules);
+        $program['modules_count'] = (!empty($program['modules']) && (int)$program['modules'] > 0)
+            ? (int)$program['modules']
+            : count($modules);
         return $program;
     }
 
@@ -72,7 +79,7 @@ class ProgramModel extends Model
     {
         $builder = $this->db->table('tblprogram p')
             ->select('p.*, 
-                      COUNT(DISTINCT m.id) as modules_count, 
+                      IF(p.modules > 0, p.modules, COUNT(DISTINCT m.id)) as modules_count, 
                       COUNT(DISTINCT e.id) as enrollments_count')
             ->join('tblprogram_module m', 'm.program_id = p.id', 'left')
             ->join('tblprogram_enrollment e', 'e.program_id = p.id', 'left')

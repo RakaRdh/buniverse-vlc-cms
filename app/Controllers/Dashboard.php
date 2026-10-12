@@ -3,6 +3,7 @@
 namespace App\Controllers;
 
 use App\Models\MemberModel;
+use App\Models\ProfileModel;
 use App\Models\ProgramModel;
 use App\Models\EnrollmentModel;
 
@@ -10,11 +11,11 @@ class Dashboard extends BaseController
 {
     public function index()
     {
-        $memberModel = new MemberModel();
+        $profileModel = new ProfileModel();
         $programModel = new ProgramModel();
         $enrollmentModel = new EnrollmentModel();
 
-        $totalMembers = $memberModel->countAllResults();
+        $totalMembers = $profileModel->countAllResults();
         $activePrograms = $programModel->where('status', 'active')->countAllResults();
         $totalPrograms = $programModel->countAllResults();
         $totalEnrollments = $enrollmentModel->countAllResults();

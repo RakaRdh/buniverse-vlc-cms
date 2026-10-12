@@ -77,12 +77,20 @@
                           placeholder="Tujuan pelatihan, topik yang dibahas, dan instruktur..."><?= esc(old('description') ?? $program['description'] ?? '') ?></textarea>
             </div>
 
-            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
                 <div>
                     <label for="duration" class="block text-xs font-semibold text-foreground mb-1.5">Durasi / Format Belajar</label>
                     <input type="text" id="duration" name="duration" value="<?= esc(old('duration') ?? $program['duration'] ?? '3 Hari') ?>"
                            class="w-full px-3 py-2 text-xs rounded-lg border border-border bg-background text-foreground focus:outline-none focus:ring-1 focus:ring-[#C41E24]"
                            placeholder="Contoh: 3 Hari / Hybrid">
+                </div>
+
+                <div>
+                    <label for="modules" class="block text-xs font-semibold text-foreground mb-1.5">Jumlah Modul (Manual)</label>
+                    <input type="number" id="modules" name="modules" value="<?= esc(old('modules') ?? $program['modules'] ?? 0) ?>" min="0"
+                           class="w-full px-3 py-2 text-xs rounded-lg border border-border bg-background text-foreground focus:outline-none focus:ring-1 focus:ring-[#C41E24]"
+                           placeholder="Contoh: 12 (0 = hitung otomatis)">
+                    <p class="text-[10px] text-muted-foreground mt-1">Jika > 0, angka ini akan dipakai di kartu program.</p>
                 </div>
 
                 <div>
