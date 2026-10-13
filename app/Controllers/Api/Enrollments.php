@@ -63,6 +63,7 @@ class Enrollments extends BaseApiController
 
         $existing = $this->enrollmentModel->where('member_id', $memberId)
                                           ->where('program_id', $programId)
+                                          ->orderBy('id', 'DESC')
                                           ->first();
         if ($existing && $existing['status'] === 'banned') {
             return $this->respondFail('Akun Anda tidak diizinkan (Banned) untuk mendaftar pada program pelatihan ini. Hubungi administrator untuk informasi lebih lanjut.', 403);

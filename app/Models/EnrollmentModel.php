@@ -69,25 +69,23 @@ class EnrollmentModel extends Model
 
     public function enrollMember($memberId, $programId, $notes = null)
     {
-        $existing = $this->where('member_id', $memberId)
-                         ->where('program_id', $programId)
-                         ->first();
+        $latest = $this->where('member_id', $memberId)
+                       ->where('program_id', $programId)
+                       ->orderBy('id', 'DESC')
+                       ->first();
 
-        if ($existing) {
+        if ($latest) {
             // User banned from this program cannot re-enroll
-            if ($existing['status'] === 'banned') {
+            if ($latest['status'] === 'banned') {
                 return false;
             }
-            // If rejected previously, allow re-enrolling by updating to waiting
-            if ($existing['status'] === 'rejected') {
-                $this->update($existing['id'], [
-                    'status'      => 'waiting',
-                    'enrolled_at' => date('Y-m-d H:i:s'),
-                    'notes'       => $notes
-                ]);
-                return $this->find($existing['id']);
+
+            // Jika pendaftaran sebelumnya masih aktif atau sedang diproses, cegah duplikasi
+            if (in_array($latest['status'], ['waiting', 'contacted', 'active', 'in_progress', 'enrolled'], true)) {
+                return $latest;
             }
-            return $existing;
+
+            // Jika status sebelumnya 'rejected' atau 'finished', buat baris pendaftaran baru (Opsi B)
         }
 
         $id = $this->insert([
