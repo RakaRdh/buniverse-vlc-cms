@@ -94,7 +94,17 @@ class EmailService
     {
         $programName = $program['name'] ?? 'Pelatihan Vokasi';
         $duration = $program['duration'] ?? '3 Hari';
-        $schedule = $program['schedule_info'] ?? 'Akan diinformasikan lebih lanjut';
+        $schedule = $program['schedule_info'] ?? '';
+        if (!empty($program['start_date']) && !empty($program['end_date'])) {
+            $dateRange = date('d M Y', strtotime($program['start_date'])) . ' - ' . date('d M Y', strtotime($program['end_date']));
+            $schedule = !empty($schedule) ? $schedule . ' (' . $dateRange . ')' : $dateRange;
+        } elseif (!empty($program['start_date'])) {
+            $dateRange = date('d M Y', strtotime($program['start_date']));
+            $schedule = !empty($schedule) ? $schedule . ' (' . $dateRange . ')' : $dateRange;
+        }
+        if (empty($schedule)) {
+            $schedule = 'Akan diinformasikan lebih lanjut';
+        }
         $price = !empty($program['price']) ? 'Rp ' . number_format((float)$program['price'], 0, ',', '.') : 'Gratis';
 
         $subject = 'Pendaftaran Disetujui: Pelatihan ' . $programName . ' — Datasatu VLC';
@@ -143,7 +153,7 @@ class EmailService
                                                 <td style="color: #0f172a; font-weight: 600; padding: 4px 0;">: ' . esc($schedule) . '</td>
                                             </tr>
                                             <tr>
-                                                <td style="color: #64748B; padding: 4px 0;">Investasi Biaya</td>
+                                                <td style="color: #64748B; padding: 4px 0;">Harga</td>
                                                 <td style="color: #C41E24; font-weight: 700; padding: 4px 0;">: ' . esc($price) . '</td>
                                             </tr>
                                         </table>

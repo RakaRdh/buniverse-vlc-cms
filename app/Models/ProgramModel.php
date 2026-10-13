@@ -39,8 +39,9 @@ class ProgramModel extends Model
                          ->findAll();
 
         foreach ($programs as &$p) {
-            if (!empty($p['modules']) && (int)$p['modules'] > 0) {
-                $p['modules_count'] = (int)$p['modules'];
+            $manualModules = (!empty($p['modules']) && is_numeric($p['modules']) && (int)$p['modules'] > 0) ? (int)$p['modules'] : 0;
+            if ($manualModules > 0) {
+                $p['modules_count'] = $manualModules;
             } else {
                 $count = $this->db->table('tblprogram_module')
                     ->where('program_id', $p['id'])
@@ -71,16 +72,20 @@ class ProgramModel extends Model
             return null;
         }
 
+        $manualModules = (!empty($program['modules']) && is_numeric($program['modules']) && (int)$program['modules'] > 0)
+            ? (int)$program['modules']
+            : 0;
+
         $modules = $this->db->table('tblprogram_module')
             ->where('program_id', $program['id'])
             ->orderBy('sort_order', 'ASC')
             ->get()
             ->getResultArray();
 
+        $program['manual_modules'] = $manualModules;
+        $program['modules_items'] = $modules;
         $program['modules'] = $modules;
-        $program['modules_count'] = (!empty($program['modules']) && (int)$program['modules'] > 0)
-            ? (int)$program['modules']
-            : count($modules);
+        $program['modules_count'] = $manualModules > 0 ? $manualModules : count($modules);
 
         // Hitung peserta aktif
         $activeCount = $this->db->table('tblprogram_enrollment')

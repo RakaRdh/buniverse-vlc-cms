@@ -46,9 +46,7 @@ class Programs extends BaseApiController
         if (!empty($active['programs'])) {
             foreach ($active['programs'] as $p) {
                 if ((string)$p['id'] === (string)$slugOrId || (!empty($p['slug']) && $p['slug'] === $slugOrId)) {
-                    if (!empty($p['modules'])) {
-                        return $this->respondSuccess($p, 'Program detail fetched successfully');
-                    }
+                    return $this->respondSuccess($p, 'Program detail fetched successfully');
                 }
             }
         }

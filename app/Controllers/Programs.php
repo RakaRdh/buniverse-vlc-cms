@@ -74,14 +74,32 @@ class Programs extends BaseController
         $priceRaw = $this->request->getPost('price');
         $price = ($priceRaw !== null && $priceRaw !== '') ? (float)$priceRaw : null;
 
+        $startDate = $this->request->getPost('start_date');
+        $endDate = $this->request->getPost('end_date');
+        $duration = $this->request->getPost('duration');
+        if (!empty($startDate) && !empty($endDate)) {
+            if (strtotime($endDate) < strtotime($startDate)) {
+                return redirect()->back()->withInput()->with('error', 'Tanggal selesai kelas tidak boleh lebih awal dari tanggal mulai kelas.');
+            }
+            $diffDays = (int)round((strtotime($endDate) - strtotime($startDate)) / 86400) + 1;
+            if ($diffDays > 0) {
+                $duration = $diffDays . ' Hari';
+            }
+        } elseif (!empty($startDate)) {
+            $duration = '1 Hari';
+        }
+        if (empty($duration)) {
+            $duration = '3 Hari';
+        }
+
         $insertData = [
             'name'             => $name,
             'slug'             => $slug,
             'short_desc'       => $this->request->getPost('short_desc'),
             'description'      => $this->request->getPost('description'),
             'price'            => $price,
-            'duration'         => $this->request->getPost('duration'),
-            'modules'          => $this->request->getPost('modules') ? (int)$this->request->getPost('modules') : 0,
+            'duration'         => $duration,
+            'modules'          => $this->request->getPost('modules') ? max(0, (int)$this->request->getPost('modules')) : 0,
             'start_date'       => $this->request->getPost('start_date') ?: null,
             'end_date'         => $this->request->getPost('end_date') ?: null,
             'schedule_info'    => $this->request->getPost('schedule_info') ?: null,
@@ -152,13 +170,31 @@ class Programs extends BaseController
         $priceRaw = $this->request->getPost('price');
         $price = ($priceRaw !== null && $priceRaw !== '') ? (float)$priceRaw : null;
 
+        $startDate = $this->request->getPost('start_date');
+        $endDate = $this->request->getPost('end_date');
+        $duration = $this->request->getPost('duration');
+        if (!empty($startDate) && !empty($endDate)) {
+            if (strtotime($endDate) < strtotime($startDate)) {
+                return redirect()->back()->withInput()->with('error', 'Tanggal selesai kelas tidak boleh lebih awal dari tanggal mulai kelas.');
+            }
+            $diffDays = (int)round((strtotime($endDate) - strtotime($startDate)) / 86400) + 1;
+            if ($diffDays > 0) {
+                $duration = $diffDays . ' Hari';
+            }
+        } elseif (!empty($startDate)) {
+            $duration = '1 Hari';
+        }
+        if (empty($duration)) {
+            $duration = $program['duration'] ?? '3 Hari';
+        }
+
         $updateData = [
             'name'             => $name,
             'short_desc'       => $this->request->getPost('short_desc'),
             'description'      => $this->request->getPost('description'),
             'price'            => $price,
-            'duration'         => $this->request->getPost('duration'),
-            'modules'          => $this->request->getPost('modules') ? (int)$this->request->getPost('modules') : 0,
+            'duration'         => $duration,
+            'modules'          => $this->request->getPost('modules') ? max(0, (int)$this->request->getPost('modules')) : 0,
             'start_date'       => $this->request->getPost('start_date') ?: null,
             'end_date'         => $this->request->getPost('end_date') ?: null,
             'schedule_info'    => $this->request->getPost('schedule_info') ?: null,
