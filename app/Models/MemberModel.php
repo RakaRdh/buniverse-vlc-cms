@@ -24,20 +24,54 @@ class MemberModel extends Model
         'reg_media'
     ];
 
-    const PEPPER = 'B3!21t454t03';
-
-    public static function generateHash(string $password, string $email): array
+    public static function generateHash(string $password, string $email = ''): array
     {
-        $cleanEmail = strtolower(trim($email));
-        $salt = hash('sha512', '[' . $cleanEmail . '>|<' . $password . ']');
-        $hash = hash('sha512', $salt . self::PEPPER . $password . $salt);
+        // 16-character / 32-hex random salt for standard sha256 ($salt . $password)
+        $salt = bin2hex(random_bytes(16));
+        $hash = hash('sha256', $salt . $password);
         return ['salt' => $salt, 'hash' => $hash];
     }
 
-    public static function verifyPassword(string $password, string $storedHash, string $salt): bool
+    public static function verifyPassword(string $password, string $storedHash, string $salt = '', string $email = ''): bool
     {
-        $calculatedHash = hash('sha512', $salt . self::PEPPER . $password . $salt);
-        return hash_equals($storedHash, $calculatedHash);
+        if (empty($storedHash)) {
+            return false;
+        }
+
+        // 1. Primary: SHA-256 ($salt . $password)
+        if (!empty($salt) && hash_equals($storedHash, hash('sha256', $salt . $password))) {
+            return true;
+        }
+
+        // 2. Fallback Variant A: SHA-256 ($password . $salt)
+        if (!empty($salt) && hash_equals($storedHash, hash('sha256', $password . $salt))) {
+            return true;
+        }
+
+        // 3. Fallback Variant B: Pure SHA-256 ($password)
+        if (hash_equals($storedHash, hash('sha256', $password))) {
+            return true;
+        }
+
+        // 4. Fallback Variant C: Legacy VLC SHA-512 + pepper
+        if (!empty($salt)) {
+            $pepper = 'B3!21t454t03';
+            if (hash_equals($storedHash, hash('sha512', $salt . $pepper . $password . $salt))) {
+                return true;
+            }
+        }
+
+        // 5. Fallback Variant D: Deterministik legacy SHA-512 jika email disertakan
+        if (!empty($email)) {
+            $cleanEmail = strtolower(trim($email));
+            $detSalt = hash('sha512', '[' . $cleanEmail . '>|<' . $password . ']');
+            $detHash = hash('sha512', $detSalt . 'B3!21t454t03' . $password . $detSalt);
+            if (hash_equals($storedHash, $detHash)) {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     public function registerMember(array $data): int|string|false

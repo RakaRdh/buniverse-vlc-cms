@@ -41,11 +41,12 @@ $navGroups = [
     ]
 ];
 
-// Activity Log is only accessible by superadmin
+// Management & Security for Superadmin
 if ($adminRole === 'superadmin') {
     $navGroups[] = [
-        'label' => 'Security & Audit',
+        'label' => 'System & Access',
         'items' => [
+            ['label' => 'Kelola Admin', 'to' => 'users', 'icon' => 'user-cog', 'type' => 'link'],
             ['label' => 'Activity Log', 'to' => 'activity-log', 'icon' => 'shield-alert', 'type' => 'link']
         ]
     ];

@@ -41,7 +41,7 @@ class Auth extends BaseApiController
             return $this->respondFail('Akun Anda belum aktif. Silakan periksa inbox email Anda untuk memverifikasi akun terlebih dahulu.', 403);
         }
 
-        $isValid = MemberModel::verifyPassword($password, $member['password'], $member['salt'] ?? '');
+        $isValid = MemberModel::verifyPassword($password, $member['password'], $member['salt'] ?? '', $member['email'] ?? '');
         if (!$isValid) {
             return $this->respondFail('Password yang Anda masukkan salah', 401);
         }

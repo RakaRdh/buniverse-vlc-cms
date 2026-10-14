@@ -66,6 +66,12 @@ $routes->group('', ['filter' => 'adminauth'], static function ($routes) {
     // Activity Log (Superadmin only inside controller)
     $routes->get('activity-log', 'ActivityLog::index');
 
+    // Admin Users Management (Superadmin only)
+    $routes->get('users', 'Users::index');
+    $routes->post('users/save', 'Users::save');
+    $routes->post('users/toggle-status/(:num)', 'Users::toggleStatus/$1');
+    $routes->post('users/delete/(:num)', 'Users::delete/$1');
+
     // Admin Profile & Password Change
     $routes->get('profile', 'Profile::index');
     $routes->post('profile/update-password', 'Profile::updatePassword');
