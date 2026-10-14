@@ -40,8 +40,8 @@
         <!-- Card 1: Data Akun & Kontak -->
         <div class="surface-card p-6 space-y-5 lg:col-span-1">
             <div class="flex items-center gap-3 pb-4 border-b border-border">
-                <div class="size-12 rounded-full bg-[#C41E24]/10 text-[#C41E24] flex items-center justify-center font-bold text-lg border border-[#C41E24]/20">
-                    <?= esc(substr($member['fullname'] ?? 'P', 0, 1)) ?>
+                <div class="size-12 rounded-full bg-[#C41E24]/10 text-[#C41E24] flex items-center justify-center border border-[#C41E24]/20">
+                    <i data-lucide="user" class="size-6"></i>
                 </div>
                 <div class="min-w-0">
                     <p class="font-bold text-sm text-foreground truncate"><?= esc($member['fullname'] ?? '-') ?></p>
@@ -59,18 +59,15 @@
                     <span class="block text-[10px] font-bold text-muted-foreground uppercase tracking-wider">Nomor WhatsApp / Telepon</span>
                     <?php if (!empty($member['phone'])): ?>
                         <div class="flex items-center justify-between gap-2 mt-0.5">
-                            <span class="font-mono font-medium text-foreground"><?= esc($member['phone']) ?></span>
-                            <?php 
-                                $cleanPhone = preg_replace('/[^0-9]/', '', $member['phone']);
-                                if (str_starts_with($cleanPhone, '0')) {
-                                    $cleanPhone = '62' . substr($cleanPhone, 1);
-                                }
-                            ?>
-                            <a href="https://wa.me/<?= $cleanPhone ?>" target="_blank" rel="noopener noreferrer" 
-                               class="inline-flex items-center gap-1 text-[11px] font-semibold text-emerald-600 hover:text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded border border-emerald-200 transition-colors">
-                                <i data-lucide="message-circle" class="size-3"></i>
-                                <span>Hubungi WA</span>
-                            </a>
+                            <span class="font-mono font-medium text-foreground"><?= esc(\App\Helpers\PhoneHelper::formatDisplay($member['phone'])) ?></span>
+                            <?php $waUrl = \App\Helpers\PhoneHelper::waUrl($member['phone']); ?>
+                            <?php if (!empty($waUrl)): ?>
+                                <a href="<?= esc($waUrl) ?>" target="_blank" rel="noopener noreferrer" 
+                                   class="inline-flex items-center gap-1 text-[11px] font-semibold text-emerald-600 hover:text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded border border-emerald-200 transition-colors">
+                                    <i data-lucide="message-circle" class="size-3"></i>
+                                    <span>Hubungi WA</span>
+                                </a>
+                            <?php endif; ?>
                         </div>
                     <?php else: ?>
                         <span class="text-muted-foreground italic">Belum diisi</span>
@@ -137,16 +134,20 @@
                             <div class="flex items-center gap-3 self-end sm:self-auto">
                                 <?php
                                     $badgeStyle = match($en['status']) {
-                                        'finished'    => 'bg-emerald-500/10 text-emerald-600 border border-emerald-500/20',
-                                        'in_progress' => 'bg-indigo-500/10 text-indigo-600 border border-indigo-500/20',
-                                        'contacted'   => 'bg-sky-500/10 text-sky-600 border border-sky-500/20',
-                                        default       => 'bg-amber-500/10 text-amber-600 border border-amber-500/20'
+                                        'finished'              => 'bg-emerald-500/10 text-emerald-600 border border-emerald-500/20',
+                                        'active', 'in_progress' => 'bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 border border-emerald-500/30',
+                                        'contacted'             => 'bg-sky-500/10 text-sky-600 border border-sky-500/20',
+                                        'banned'                => 'bg-red-600 text-white font-bold border border-red-700',
+                                        'rejected'              => 'bg-rose-500/10 text-rose-600 border border-rose-500/20',
+                                        default                 => 'bg-amber-500/10 text-amber-600 border border-amber-500/20'
                                     };
                                     $statusLabel = match($en['status']) {
-                                        'finished'    => 'Finished',
-                                        'in_progress' => 'In Progress',
-                                        'contacted'   => 'Contacted',
-                                        default       => 'Enrolled'
+                                        'finished'              => 'Finished',
+                                        'active', 'in_progress' => 'Active (Verified)',
+                                        'contacted'             => 'Contacted',
+                                        'banned'                => 'Banned',
+                                        'rejected'              => 'Rejected',
+                                        default                 => 'Waiting'
                                     };
                                 ?>
                                 <span class="inline-flex items-center rounded-full px-2.5 py-1 text-[10px] font-semibold <?= $badgeStyle ?>">

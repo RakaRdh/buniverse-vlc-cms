@@ -137,8 +137,8 @@ if ($adminRole === 'superadmin') {
     <div class="shrink-0 border-t border-white/15 p-3">
         <div class="flex items-center justify-between gap-2 rounded-lg bg-black/15 p-2.5 border border-white/10">
             <a href="/profile" class="flex items-center gap-2.5 min-w-0 flex-1 hover:opacity-90 transition-opacity" title="Lihat Profil Admin">
-                <div class="size-8 rounded-full bg-white/20 flex items-center justify-center text-xs font-bold text-white shrink-0 border border-white/30">
-                    <?= esc(substr(session('admin_name') ?? 'Admin', 0, 1)) ?>
+                <div class="size-8 rounded-full bg-white/20 flex items-center justify-center text-white shrink-0 border border-white/30">
+                    <i data-lucide="user" class="size-4"></i>
                 </div>
                 <div class="min-w-0 brand-desc">
                     <p class="truncate text-xs font-semibold text-white"><?= esc(session('admin_name') ?? 'Admin VLC') ?></p>

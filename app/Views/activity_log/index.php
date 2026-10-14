@@ -47,9 +47,21 @@
                 </select>
             </div>
 
+            <!-- Filter Jumlah Per Halaman (Posisi Antara Filter Aksi & Search) -->
+            <div class="sm:col-span-2">
+                <select name="per_page" id="filterPerPage"
+                        class="w-full text-xs rounded-md border border-border bg-background px-3 py-1.5 focus:outline-none focus:ring-1 focus:ring-[#C41E24] font-medium"
+                        title="Tampilkan per halaman">
+                    <option value="50" <?= ($perPage === 50) ? 'selected' : '' ?>>50 / hal</option>
+                    <option value="100" <?= ($perPage === 100) ? 'selected' : '' ?>>100 / hal</option>
+                    <option value="150" <?= ($perPage === 150) ? 'selected' : '' ?>>150 / hal</option>
+                    <option value="200" <?= ($perPage === 200) ? 'selected' : '' ?>>200 / hal</option>
+                </select>
+            </div>
+
             <!-- Keyword Search -->
-            <div class="sm:col-span-6 relative">
-                <input type="text" name="q" id="filterKeyword" value="<?= esc($keyword ?? '') ?>" placeholder="Cari keterangan, nama admin, atau member..."
+            <div class="sm:col-span-4 relative">
+                <input type="text" name="q" id="filterKeyword" value="<?= esc($keyword ?? '') ?>" placeholder="Cari keterangan, admin, member..."
                        class="w-full pl-8 pr-3 py-1.5 text-xs rounded-md border border-border bg-background focus:outline-none focus:ring-1 focus:ring-[#C41E24]">
                 <i data-lucide="search" class="size-3.5 absolute left-2.5 top-1/2 -translate-y-1/2 text-muted-foreground"></i>
             </div>
@@ -59,14 +71,59 @@
     <!-- Table -->
     <div id="activityTableWrapper" class="surface-card overflow-hidden transition-opacity duration-150">
         <div class="overflow-x-auto">
-            <table class="w-full text-left text-xs">
-                <thead class="bg-muted/50 border-b border-border text-muted-foreground uppercase text-[10px] tracking-wider">
+            <table class="w-full text-left text-xs" data-sortable-table>
+                <thead class="bg-muted/50 border-b border-border text-muted-foreground uppercase text-[10px] tracking-wider select-none">
                     <tr>
-                        <th class="px-4 py-3 font-semibold">Waktu</th>
-                        <th class="px-4 py-3 font-semibold">Administrator</th>
-                        <th class="px-4 py-3 font-semibold">Aksi</th>
-                        <th class="px-4 py-3 font-semibold">Modul</th>
-                        <th class="px-4 py-3 font-semibold">Member Terkait</th>
+                        <th class="px-4 py-3 font-semibold cursor-pointer hover:text-foreground transition-colors group" data-sort-key="created_at">
+                            <div class="flex items-center gap-1.5">
+                                <span>Waktu</span>
+                                <?php if ($sortCol === 'created_at' && in_array($sortDir, ['asc', 'desc'])): ?>
+                                    <i data-lucide="<?= ($sortDir === 'asc') ? 'arrow-up' : 'arrow-down' ?>" class="size-3 text-[#C41E24]"></i>
+                                <?php else: ?>
+                                    <i data-lucide="arrow-up-down" class="size-3 opacity-30 group-hover:opacity-80"></i>
+                                <?php endif; ?>
+                            </div>
+                        </th>
+                        <th class="px-4 py-3 font-semibold cursor-pointer hover:text-foreground transition-colors group" data-sort-key="admin_name">
+                            <div class="flex items-center gap-1.5">
+                                <span>Administrator</span>
+                                <?php if ($sortCol === 'admin_name' && in_array($sortDir, ['asc', 'desc'])): ?>
+                                    <i data-lucide="<?= ($sortDir === 'asc') ? 'arrow-up' : 'arrow-down' ?>" class="size-3 text-[#C41E24]"></i>
+                                <?php else: ?>
+                                    <i data-lucide="arrow-up-down" class="size-3 opacity-30 group-hover:opacity-80"></i>
+                                <?php endif; ?>
+                            </div>
+                        </th>
+                        <th class="px-4 py-3 font-semibold cursor-pointer hover:text-foreground transition-colors group" data-sort-key="action">
+                            <div class="flex items-center gap-1.5">
+                                <span>Aksi</span>
+                                <?php if ($sortCol === 'action' && in_array($sortDir, ['asc', 'desc'])): ?>
+                                    <i data-lucide="<?= ($sortDir === 'asc') ? 'arrow-up' : 'arrow-down' ?>" class="size-3 text-[#C41E24]"></i>
+                                <?php else: ?>
+                                    <i data-lucide="arrow-up-down" class="size-3 opacity-30 group-hover:opacity-80"></i>
+                                <?php endif; ?>
+                            </div>
+                        </th>
+                        <th class="px-4 py-3 font-semibold cursor-pointer hover:text-foreground transition-colors group" data-sort-key="module">
+                            <div class="flex items-center gap-1.5">
+                                <span>Modul</span>
+                                <?php if ($sortCol === 'module' && in_array($sortDir, ['asc', 'desc'])): ?>
+                                    <i data-lucide="<?= ($sortDir === 'asc') ? 'arrow-up' : 'arrow-down' ?>" class="size-3 text-[#C41E24]"></i>
+                                <?php else: ?>
+                                    <i data-lucide="arrow-up-down" class="size-3 opacity-30 group-hover:opacity-80"></i>
+                                <?php endif; ?>
+                            </div>
+                        </th>
+                        <th class="px-4 py-3 font-semibold cursor-pointer hover:text-foreground transition-colors group" data-sort-key="target_member_name">
+                            <div class="flex items-center gap-1.5">
+                                <span>Member Terkait</span>
+                                <?php if ($sortCol === 'target_member_name' && in_array($sortDir, ['asc', 'desc'])): ?>
+                                    <i data-lucide="<?= ($sortDir === 'asc') ? 'arrow-up' : 'arrow-down' ?>" class="size-3 text-[#C41E24]"></i>
+                                <?php else: ?>
+                                    <i data-lucide="arrow-up-down" class="size-3 opacity-30 group-hover:opacity-80"></i>
+                                <?php endif; ?>
+                            </div>
+                        </th>
                         <th class="px-4 py-3 font-semibold">Keterangan Detail</th>
                     </tr>
                 </thead>
@@ -127,6 +184,34 @@
                 </tbody>
             </table>
         </div>
+
+        <!-- Pagination & Summary Bar -->
+        <?php if (!empty($pager) && $pager->getPageCount() > 1): ?>
+            <?php 
+                $currentPageNum = $pager->getCurrentPage();
+                $pageCount = $pager->getPageCount();
+            ?>
+            <div class="px-4 py-3 border-t border-border flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 text-xs text-muted-foreground">
+                <div class="flex items-center gap-2">
+                    <span>Menampilkan <strong><?= count($logs) ?></strong> data log</span>
+                    <span>&bull;</span>
+                    <span>Halaman <strong><?= $currentPageNum ?></strong> dari <strong><?= $pageCount ?></strong></span>
+                </div>
+                <div class="flex items-center gap-1.5 flex-wrap">
+                    <?php if ($currentPageNum > 1): ?>
+                        <button type="button" onclick="goToActivityPage(1)" class="px-2.5 py-1 rounded border border-border bg-background hover:bg-muted font-medium transition-colors" title="Halaman Pertama">&laquo;</button>
+                        <button type="button" onclick="goToActivityPage(<?= $currentPageNum - 1 ?>)" class="px-2.5 py-1 rounded border border-border bg-background hover:bg-muted font-medium transition-colors">&lsaquo; Prev</button>
+                    <?php endif; ?>
+
+                    <span class="px-3 py-1 rounded bg-[#C41E24] text-white font-bold text-xs"><?= $currentPageNum ?></span>
+
+                    <?php if ($currentPageNum < $pageCount): ?>
+                        <button type="button" onclick="goToActivityPage(<?= $currentPageNum + 1 ?>)" class="px-2.5 py-1 rounded border border-border bg-background hover:bg-muted font-medium transition-colors">Next &rsaquo;</button>
+                        <button type="button" onclick="goToActivityPage(<?= $pageCount ?>)" class="px-2.5 py-1 rounded border border-border bg-background hover:bg-muted font-medium transition-colors" title="Halaman Terakhir">&raquo;</button>
+                    <?php endif; ?>
+                </div>
+            </div>
+        <?php endif; ?>
     </div>
 </div>
 
@@ -134,6 +219,7 @@
     (function initActivityLogAjaxFilter() {
         const moduleSelect = document.getElementById('filterModule');
         const actionSelect = document.getElementById('filterAction');
+        const perPageSelect = document.getElementById('filterPerPage');
         const keywordInput = document.getElementById('filterKeyword');
         const tableWrapper = document.getElementById('activityTableWrapper');
 
@@ -141,16 +227,29 @@
 
         let debounceTimer = null;
         let activeAbortCtrl = null;
+        let currentSortCol = '<?= esc($sortCol ?? 'id') ?>';
+        let currentSortDir = '<?= esc($sortDir ?? 'desc') ?>';
+        let currentPage = <?= (int) ($pager ? $pager->getCurrentPage() : 1) ?>;
+
+        window.goToActivityPage = function(p) {
+            currentPage = p;
+            fetchFilteredLogs();
+        };
 
         function fetchFilteredLogs() {
             const mod = moduleSelect.value;
             const act = actionSelect.value;
+            const perPage = perPageSelect ? perPageSelect.value : 50;
             const kw = keywordInput.value.trim();
 
             const params = new URLSearchParams();
             if (mod) params.set('module', mod);
             if (act) params.set('action', act);
+            if (perPage) params.set('per_page', perPage);
             if (kw) params.set('q', kw);
+            if (currentSortCol) params.set('sort', currentSortCol);
+            if (currentSortDir) params.set('dir', currentSortDir);
+            if (currentPage > 1) params.set('page', currentPage);
 
             const newUrl = '/activity-log' + (params.toString() ? '?' + params.toString() : '');
             window.history.replaceState(null, '', newUrl);
@@ -178,6 +277,7 @@
                 if (window.lucide) {
                     lucide.createIcons();
                 }
+                bindHeaderSortClicks();
             })
             .catch(err => {
                 if (err.name !== 'AbortError') {
@@ -187,13 +287,47 @@
             });
         }
 
-        moduleSelect.addEventListener('change', fetchFilteredLogs);
-        actionSelect.addEventListener('change', fetchFilteredLogs);
+        function bindHeaderSortClicks() {
+            const sortHeaders = tableWrapper.querySelectorAll('th[data-sort-key]');
+            sortHeaders.forEach(th => {
+                th.addEventListener('click', function() {
+                    const key = this.getAttribute('data-sort-key');
+                    if (currentSortCol === key) {
+                        // Cycle: asc -> desc -> default (reset to id desc)
+                        if (currentSortDir === 'asc') {
+                            currentSortDir = 'desc';
+                        } else if (currentSortDir === 'desc') {
+                            currentSortCol = '';
+                            currentSortDir = '';
+                        } else {
+                            currentSortDir = 'asc';
+                        }
+                    } else {
+                        // First click on this column -> asc
+                        currentSortCol = key;
+                        currentSortDir = 'asc';
+                    }
+                    currentPage = 1; // Reset to page 1 on sort change
+                    fetchFilteredLogs();
+                });
+            });
+        }
+
+        moduleSelect.addEventListener('change', () => { currentPage = 1; fetchFilteredLogs(); });
+        actionSelect.addEventListener('change', () => { currentPage = 1; fetchFilteredLogs(); });
+        if (perPageSelect) {
+            perPageSelect.addEventListener('change', () => { currentPage = 1; fetchFilteredLogs(); });
+        }
 
         keywordInput.addEventListener('input', function() {
             clearTimeout(debounceTimer);
-            debounceTimer = setTimeout(fetchFilteredLogs, 300);
+            debounceTimer = setTimeout(() => {
+                currentPage = 1;
+                fetchFilteredLogs();
+            }, 300);
         });
+
+        bindHeaderSortClicks();
     })();
 </script>
 

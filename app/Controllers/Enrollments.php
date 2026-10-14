@@ -85,6 +85,62 @@ class Enrollments extends BaseController
             }
         }
 
+        $autoRejectInfo = '';
+
+        // Auto-reject remaining waiting/contacted applicants if quota is reached when setting status to active
+        if ($newStatus === 'active') {
+            $program = $this->programModel->find($enrollment['program_id']);
+            $maxCap = (int)($program['max_participants'] ?? 0);
+
+            if ($maxCap > 0) {
+                $db = \Config\Database::connect();
+                $activeCount = (int) $db->table('tblprogram_enrollment')
+                    ->select('COUNT(DISTINCT member_id) as total')
+                    ->where('program_id', $enrollment['program_id'])
+                    ->whereIn('status', ['active', 'in_progress'])
+                    ->get()->getRow()->total;
+
+                if ($activeCount >= $maxCap) {
+                    $pendingEnrollments = $this->enrollmentModel
+                        ->where('program_id', $enrollment['program_id'])
+                        ->whereIn('status', ['waiting', 'contacted'])
+                        ->findAll();
+
+                    if (!empty($pendingEnrollments)) {
+                        $rejectedCount = 0;
+                        $emailService = new \App\Services\EmailService();
+                        $programData = $program ?: ['name' => $programName];
+
+                        $memberModel = new \App\Models\MemberModel();
+
+                        foreach ($pendingEnrollments as $pe) {
+                            $this->enrollmentModel->update($pe['id'], [
+                                'status' => 'rejected',
+                                'notes'  => 'Otomatis ditolak sistem: kuota kelas telah terpenuhi (' . $activeCount . '/' . $maxCap . ' peserta).'
+                            ]);
+                            $rejectedCount++;
+
+                            $peMember = $memberModel->find($pe['member_id']);
+                            if ($peMember && !empty($peMember['email'])) {
+                                $emailService->sendEnrollmentRejectedEmail($peMember['email'], $peMember['fullname'] ?? 'Peserta', $programData);
+                            }
+
+                            ActivityLogModel::log(
+                                'STATUS_CHANGE',
+                                'enrollments',
+                                "Otomatis menolak pendaftaran ID #{$pe['id']} (Member #{$pe['member_id']}) karena kuota kelas {$programName} penuh ({$activeCount}/{$maxCap})",
+                                (string)$pe['id'],
+                                (int)$pe['member_id'],
+                                $peMember['fullname'] ?? ('Member #' . $pe['member_id'])
+                            );
+                        }
+
+                        $autoRejectInfo = " Kuota kelas telah penuh ({$activeCount}/{$maxCap}). {$rejectedCount} pendaftar tersisa berstatus waiting/contacted otomatis ditolak dan dikirimi email pemberitahuan.";
+                    }
+                }
+            }
+        }
+
         $this->purgeAllCache();
 
         ActivityLogModel::log(
@@ -105,7 +161,7 @@ class Enrollments extends BaseController
             default     => ucfirst($newStatus)
         };
 
-        return redirect()->to('/enrollments')->with('success', "Status pendaftaran {$memberName} berhasil diubah menjadi '{$statusMessage}'.");
+        return redirect()->to('/enrollments')->with('success', "Status pendaftaran {$memberName} berhasil diubah menjadi '{$statusMessage}'.{$autoRejectInfo}");
     }
 
     /**
@@ -172,6 +228,7 @@ class Enrollments extends BaseController
             // Update / add phone number if provided
             $phone = trim($this->request->getPost('phone') ?? '');
             if (!empty($phone)) {
+                $phone = \App\Helpers\PhoneHelper::normalize($phone) ?: $phone;
                 $profile = $profileModel->where('member_id', $memberId)->first();
                 if ($profile) {
                     $profileModel->update($profile['id'], ['phone' => $phone]);
@@ -197,6 +254,11 @@ class Enrollments extends BaseController
             $existingMember = $memberModel->where('email', $email)->first();
             if ($existingMember) {
                 return redirect()->to('/enrollments')->with('error', 'Email tersebut sudah terdaftar di sistem. Silakan gunakan opsi akun Datasatu yang sudah ada.');
+            }
+
+            // Normalize phone if provided
+            if (!empty($phone)) {
+                $phone = \App\Helpers\PhoneHelper::normalize($phone) ?: $phone;
             }
 
             // Generate password hash
@@ -252,6 +314,12 @@ class Enrollments extends BaseController
             ]);
         }
 
+        // Send email notifications if status is active
+        if ($enrollStatus === 'active' && !empty($memberEmail)) {
+            $emailService = new \App\Services\EmailService();
+            $emailService->sendEnrollmentApprovedEmail($memberEmail, $memberName, $program);
+        }
+
         $this->purgeAllCache();
 
         ActivityLogModel::log(
@@ -263,6 +331,6 @@ class Enrollments extends BaseController
             $memberName
         );
 
-        return redirect()->to('/enrollments')->with('success', "Peserta {$memberName} berhasil didaftarkan dan di-assign ke kelas {$program['name']} dengan status '{$enrollStatus}'.");
+        return redirect()->to('/enrollments')->with('success', "Peserta {$memberName} berhasil didaftarkan dan di-assign ke kelas {$program['name']} dengan status '{$enrollStatus}'" . ($enrollStatus === 'active' ? ' (Email konfirmasi dikirim ke ' . esc($memberEmail) . ')' : '') . '.');
     }
 }

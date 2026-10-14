@@ -74,8 +74,22 @@
                                 <td class="px-4 py-3.5 text-muted-foreground">
                                     <?= esc($m['email']) ?>
                                 </td>
-                                <td class="px-4 py-3.5 text-muted-foreground">
-                                    <?= esc($m['phone'] ?? '-') ?>
+                                <td class="px-4 py-3.5 text-muted-foreground whitespace-nowrap">
+                                    <?php if (!empty($m['phone'])): ?>
+                                        <div class="flex items-center gap-1.5 font-mono text-[11px] text-foreground">
+                                            <span><?= esc(\App\Helpers\PhoneHelper::formatDisplay($m['phone'])) ?></span>
+                                            <?php $waUrl = \App\Helpers\PhoneHelper::waUrl($m['phone']); ?>
+                                            <?php if (!empty($waUrl)): ?>
+                                                <a href="<?= esc($waUrl) ?>" target="_blank" rel="noopener noreferrer" 
+                                                   onclick="event.stopPropagation();"
+                                                   class="text-emerald-600 hover:text-emerald-700 p-0.5 rounded transition-transform hover:scale-110" title="Hubungi via WhatsApp">
+                                                    <i data-lucide="message-circle" class="size-3.5"></i>
+                                                </a>
+                                            <?php endif; ?>
+                                        </div>
+                                    <?php else: ?>
+                                        <span class="text-muted-foreground">-</span>
+                                    <?php endif; ?>
                                 </td>
                                 <td class="px-4 py-3.5 text-center font-medium">
                                     <span class="inline-flex items-center gap-1 rounded-md bg-muted px-2 py-0.5">
@@ -170,6 +184,9 @@
                 tableWrapper.style.opacity = '1';
                 if (window.lucide) {
                     lucide.createIcons();
+                }
+                if (window.initGlobalTableSorting) {
+                    window.initGlobalTableSorting();
                 }
             })
             .catch(err => {

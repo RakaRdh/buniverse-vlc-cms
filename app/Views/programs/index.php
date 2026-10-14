@@ -170,6 +170,9 @@
                 if (window.lucide) {
                     lucide.createIcons();
                 }
+                if (window.initGlobalTableSorting) {
+                    window.initGlobalTableSorting();
+                }
             })
             .catch(err => {
                 if (err.name !== 'AbortError') {

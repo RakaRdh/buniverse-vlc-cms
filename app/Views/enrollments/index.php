@@ -82,9 +82,16 @@
                     <?php else: ?>
                         <?php foreach ($enrollments as $e): ?>
                             <tr class="hover:bg-muted/20 transition-colors">
-                                <!-- Peserta: Nama saja -->
-                                <td class="px-4 py-3.5 font-semibold text-foreground">
-                                    <?= esc($e['member_name'] ?? 'Peserta #' . $e['member_id']) ?>
+                                <!-- Peserta: Nama & Email -->
+                                <td class="px-4 py-3.5">
+                                    <div class="font-semibold text-foreground text-xs">
+                                        <?= esc($e['member_name'] ?? 'Peserta #' . $e['member_id']) ?>
+                                    </div>
+                                    <?php if (!empty($e['member_email'])): ?>
+                                        <div class="text-[11px] text-muted-foreground font-normal mt-0.5">
+                                            <?= esc($e['member_email']) ?>
+                                        </div>
+                                    <?php endif; ?>
                                 </td>
 
                                 <!-- Program -->
@@ -122,21 +129,18 @@
                                     </span>
                                 </td>
 
-                                <!-- No Telp Column -->
-                                <td class="px-4 py-3.5 font-mono text-[11px] text-foreground">
+                                <!-- No Telp Column (Format Standar + WA link) -->
+                                <td class="px-4 py-3.5 font-mono text-[11px] text-foreground whitespace-nowrap">
                                     <?php if (!empty($e['member_phone'])): ?>
                                         <div class="flex items-center gap-1.5">
-                                            <span><?= esc($e['member_phone']) ?></span>
-                                            <?php 
-                                                $cleanPhone = preg_replace('/[^0-9]/', '', $e['member_phone']);
-                                                if (str_starts_with($cleanPhone, '0')) {
-                                                    $cleanPhone = '62' . substr($cleanPhone, 1);
-                                                }
-                                            ?>
-                                            <a href="https://wa.me/<?= $cleanPhone ?>" target="_blank" rel="noopener noreferrer" 
-                                               class="text-emerald-600 hover:text-emerald-700 p-0.5 rounded" title="Hubungi via WhatsApp">
-                                                <i data-lucide="message-circle" class="size-3.5"></i>
-                                            </a>
+                                            <span><?= esc(\App\Helpers\PhoneHelper::formatDisplay($e['member_phone'])) ?></span>
+                                            <?php $waUrl = \App\Helpers\PhoneHelper::waUrl($e['member_phone']); ?>
+                                            <?php if (!empty($waUrl)): ?>
+                                                <a href="<?= esc($waUrl) ?>" target="_blank" rel="noopener noreferrer" 
+                                                   class="text-emerald-600 hover:text-emerald-700 p-0.5 rounded transition-transform hover:scale-110" title="Hubungi via WhatsApp">
+                                                    <i data-lucide="message-circle" class="size-3.5"></i>
+                                                </a>
+                                            <?php endif; ?>
                                         </div>
                                     <?php else: ?>
                                         <span class="text-muted-foreground">-</span>
@@ -283,8 +287,9 @@
 
                         <div class="pt-2 border-t border-border">
                             <label class="block text-[11px] font-semibold text-foreground mb-1">Nomor WhatsApp / Telepon:</label>
-                            <input type="text" name="phone" id="existingMemberPhone" placeholder="Contoh: 081234567890"
-                                   class="w-full px-3 py-1.5 text-xs rounded-lg border border-border bg-background text-foreground focus:outline-none focus:ring-1 focus:ring-[#C41E24]">
+                            <div id="existing_phone_container" data-phone-input 
+                                 data-name="phone" data-value="" data-required="false" 
+                                 data-theme="cms" data-placeholder="812-1278-7989"></div>
                             <p class="text-[10px] text-muted-foreground mt-0.5">Otomatis memperbarui atau menambahkan nomor di tabel profil.</p>
                         </div>
                     </div>
@@ -311,8 +316,9 @@
 
                     <div>
                         <label class="block text-xs font-semibold text-foreground mb-1">Nomor WhatsApp / Telepon</label>
-                        <input type="text" name="new_phone" id="newPhone" placeholder="Contoh: 081234567890"
-                               class="w-full px-3 py-2 text-xs rounded-lg border border-border bg-background text-foreground focus:outline-none focus:ring-1 focus:ring-[#C41E24]">
+                        <div id="new_phone_container" data-phone-input 
+                             data-name="new_phone" data-value="" data-required="false" 
+                             data-theme="cms" data-placeholder="812-1278-7989"></div>
                     </div>
 
                     <div class="grid grid-cols-2 gap-3">
@@ -534,7 +540,11 @@
                 document.getElementById('selectedMemberId').value = res.data.member_id;
                 document.getElementById('foundMemberName').textContent = res.data.fullname;
                 document.getElementById('foundMemberEmail').textContent = res.data.email;
-                document.getElementById('existingMemberPhone').value = res.data.phone || '';
+                
+                const existingPhoneCont = document.getElementById('existing_phone_container');
+                if (existingPhoneCont && existingPhoneCont._vlcPhoneInstance) {
+                    existingPhoneCont._vlcPhoneInstance.setValue(res.data.phone || '');
+                }
                 card.classList.remove('hidden');
             } else {
                 msgEl.className = 'text-[11px] mt-1.5 text-red-500 font-medium block';
@@ -582,9 +592,11 @@
                 }
 
                 // Copy phone from paneNew to phone field for submit
-                const phoneInput = document.getElementById('existingMemberPhone');
-                if (phoneInput) {
-                    phoneInput.value = document.getElementById('newPhone').value.trim();
+                const newPhoneCont = document.getElementById('new_phone_container');
+                const existPhoneCont = document.getElementById('existing_phone_container');
+                if (newPhoneCont && newPhoneCont._vlcPhoneInstance && existPhoneCont && existPhoneCont._vlcPhoneInstance) {
+                    const newPhoneVal = newPhoneCont._vlcPhoneInstance.getValue();
+                    existPhoneCont._vlcPhoneInstance.setValue(newPhoneVal);
                 }
 
                 document.getElementById('summaryMemberText').textContent = `${name} (${email}) — [Akun Baru]`;
@@ -663,6 +675,9 @@
                 if (window.lucide) {
                     lucide.createIcons();
                 }
+                if (window.initGlobalTableSorting) {
+                    window.initGlobalTableSorting();
+                }
             })
             .catch(err => {
                 if (err.name !== 'AbortError') {
@@ -682,4 +697,5 @@
     })();
 </script>
 
+<script src="/js/phoneInput.js"></script>
 <?= $this->endSection() ?>

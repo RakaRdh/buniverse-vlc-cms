@@ -30,8 +30,8 @@
         <!-- Card 1: Detail Akun Admin -->
         <div class="surface-card p-6 space-y-5 md:col-span-1">
             <div class="text-center pb-4 border-b border-border">
-                <div class="size-16 rounded-full bg-[#C41E24] text-white flex items-center justify-center font-bold text-2xl mx-auto shadow-md shadow-red-600/20 mb-3 border-2 border-white">
-                    <?= esc(substr($admin['name'] ?? 'A', 0, 1)) ?>
+                <div class="size-16 rounded-full bg-[#C41E24] text-white flex items-center justify-center mx-auto shadow-md shadow-red-600/20 mb-3 border-2 border-white">
+                    <i data-lucide="user" class="size-8"></i>
                 </div>
                 <h2 class="font-bold text-sm text-foreground"><?= esc($admin['name'] ?? '-') ?></h2>
                 <p class="text-xs text-muted-foreground mt-0.5"><?= esc($admin['email']) ?></p>

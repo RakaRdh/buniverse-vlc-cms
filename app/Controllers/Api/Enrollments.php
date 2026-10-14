@@ -46,9 +46,24 @@ class Enrollments extends BaseApiController
             return $this->respondFail('Program tidak ditemukan', 404);
         }
 
+        // Check if program is already expired
+        if (!empty($program['end_date']) && strtotime($program['end_date']) < strtotime('today')) {
+            $formattedEnd = date('d M Y', strtotime($program['end_date']));
+            return $this->respondFail("Pendaftaran untuk program ini telah ditutup karena periode kelas telah berakhir pada {$formattedEnd}.", 400);
+        }
+
         // Check/update phone if provided
         $profile = $this->profileModel->where('member_id', $memberId)->first();
         if (!empty($phone)) {
+            $phone = \App\Helpers\PhoneHelper::normalize($phone);
+            if ($phone === false) {
+                return $this->respondFail('Format nomor telepon tidak valid', 400);
+            }
+            $phoneValidation = \App\Helpers\PhoneHelper::validate($phone);
+            if (!$phoneValidation['valid']) {
+                return $this->respondFail($phoneValidation['message'], 400);
+            }
+
             if ($profile) {
                 $this->profileModel->update($profile['id'], ['phone' => $phone]);
             } else {
@@ -74,10 +89,26 @@ class Enrollments extends BaseApiController
             return $this->respondFail('Akun Anda tidak diizinkan (Banned) untuk mendaftar pada program pelatihan ini.', 403);
         }
 
+        // If returned existing active/pending enrollment, return descriptive message
+        if ($existing && isset($enrollment['id']) && (int)$existing['id'] === (int)$enrollment['id']) {
+            $statusMessages = [
+                'active'      => 'Anda sudah terdaftar sebagai peserta aktif di kelas ini.',
+                'waiting'     => 'Pendaftaran Anda sedang dalam antrean verifikasi admin.',
+                'contacted'   => 'Tim admin sedang dalam proses menghubungi Anda untuk koordinasi kelas.',
+                'in_progress' => 'Anda sedang aktif mengikuti program pelatihan ini.',
+                'enrolled'    => 'Anda sudah terdaftar di kelas ini.',
+            ];
+            $msg = $statusMessages[$enrollment['status']] ?? 'Anda sudah terdaftar di kelas ini.';
+            return $this->respondSuccess([
+                'enrollment' => $enrollment,
+                'program'    => $program
+            ], $msg, 200);
+        }
+
         return $this->respondSuccess([
             'enrollment' => $enrollment,
             'program'    => $program
-        ], 'Pendaftaran kelas berhasil', 201);
+        ], 'Pendaftaran kelas berhasil dikirimkan!', 201);
     }
 
     /**

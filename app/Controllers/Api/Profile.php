@@ -71,6 +71,16 @@ class Profile extends BaseApiController
             return $this->respondFail('Nomor WhatsApp / Telepon tidak boleh kosong', 400);
         }
 
+        $phone = \App\Helpers\PhoneHelper::normalize($phone);
+        if ($phone === false) {
+            return $this->respondFail('Format nomor WhatsApp / Telepon tidak valid', 400);
+        }
+
+        $phoneValidation = \App\Helpers\PhoneHelper::validate($phone);
+        if (!$phoneValidation['valid']) {
+            return $this->respondFail($phoneValidation['message'], 400);
+        }
+
         $db = \Config\Database::connect();
         $db->transBegin();
 

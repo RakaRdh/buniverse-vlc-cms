@@ -59,8 +59,8 @@ $adminInitial = strtoupper(substr($adminName, 0, 1));
             <a href="/profile" 
                class="inline-flex items-center gap-2 p-1 sm:px-2.5 sm:py-1.5 rounded-lg border border-border bg-background hover:bg-muted transition-colors text-foreground group" 
                title="Profil Administrator">
-                <div class="size-6 rounded-full bg-[#C41E24] text-white flex items-center justify-center text-[10px] font-bold shadow-xs">
-                    <?= esc($adminInitial) ?>
+                <div class="size-6 rounded-full bg-[#C41E24] text-white flex items-center justify-center shadow-xs">
+                    <i data-lucide="user" class="size-3.5"></i>
                 </div>
                 <span class="hidden sm:inline text-xs font-semibold max-w-[120px] truncate"><?= esc($adminName) ?></span>
             </a>

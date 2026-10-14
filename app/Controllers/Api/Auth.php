@@ -78,6 +78,16 @@ class Auth extends BaseApiController
             return $this->respondFail('Semua kolom bertanda bintang (*) wajib diisi', 400);
         }
 
+        $phone = \App\Helpers\PhoneHelper::normalize($phone);
+        if ($phone === false) {
+            return $this->respondFail('Format nomor telepon tidak valid. Gunakan format yang benar.', 400);
+        }
+
+        $phoneValidation = \App\Helpers\PhoneHelper::validate($phone);
+        if (!$phoneValidation['valid']) {
+            return $this->respondFail($phoneValidation['message'], 400);
+        }
+
         if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
             return $this->respondFail('Format email tidak valid', 400);
         }
