@@ -176,9 +176,27 @@
 
             <div>
                 <label class="block text-xs font-semibold text-foreground mb-1.5">Password Awal *</label>
-                <input type="password" name="password" required minlength="6" placeholder="Minimal 6 karakter"
-                       class="w-full rounded-lg border border-border bg-background px-3 py-2 text-xs text-foreground placeholder:text-muted-foreground focus:outline-hidden focus:ring-1 focus:ring-[#C41E24]">
-                <p class="text-[10px] text-muted-foreground mt-1">Admin yang dibuat dapat mengganti password mereka secara mandiri melalui menu Profil.</p>
+                <div class="relative">
+                    <input type="password" id="adminPassword" name="password" required minlength="6" placeholder="Minimal 6 karakter & ada simbol (!@#$...)"
+                           class="w-full rounded-lg border border-border bg-background pl-3 pr-10 py-2 text-xs text-foreground placeholder:text-muted-foreground focus:outline-hidden focus:ring-1 focus:ring-[#C41E24]">
+                    <button type="button" onclick="togglePass('adminPassword', this)" 
+                            class="absolute right-2.5 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground cursor-pointer p-0.5">
+                        <i data-lucide="eye" class="size-4"></i>
+                    </button>
+                </div>
+                <p class="text-[10px] text-muted-foreground mt-1">Wajib mengandung minimal 1 karakter khusus / simbol (contoh: @, #, $, %, !).</p>
+            </div>
+
+            <div>
+                <label class="block text-xs font-semibold text-foreground mb-1.5">Konfirmasi Password *</label>
+                <div class="relative">
+                    <input type="password" id="adminPasswordConfirm" name="password_confirm" required minlength="6" placeholder="Ketik ulang password"
+                           class="w-full rounded-lg border border-border bg-background pl-3 pr-10 py-2 text-xs text-foreground placeholder:text-muted-foreground focus:outline-hidden focus:ring-1 focus:ring-[#C41E24]">
+                    <button type="button" onclick="togglePass('adminPasswordConfirm', this)" 
+                            class="absolute right-2.5 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground cursor-pointer p-0.5">
+                        <i data-lucide="eye" class="size-4"></i>
+                    </button>
+                </div>
             </div>
 
             <div class="flex items-center justify-end gap-2 pt-3 border-t border-border">
@@ -203,6 +221,16 @@
     }
     function closeAddUserModal() {
         document.getElementById('addUserModal').classList.add('hidden');
+    }
+    function togglePass(inputId, btn) {
+        const input = document.getElementById(inputId);
+        if (!input) return;
+        const isPassword = input.type === 'password';
+        input.type = isPassword ? 'text' : 'password';
+        btn.innerHTML = isPassword 
+            ? '<i data-lucide="eye-off" class="size-4"></i>' 
+            : '<i data-lucide="eye" class="size-4"></i>';
+        if (window.lucide) lucide.createIcons();
     }
 </script>
 <?= $this->endSection() ?>

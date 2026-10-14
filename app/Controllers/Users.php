@@ -73,9 +73,10 @@ class Users extends BaseController
         $username = strtolower(trim($this->request->getPost('username') ?? ''));
         $email = strtolower(trim($this->request->getPost('email') ?? ''));
         $password = (string) $this->request->getPost('password');
+        $passwordConfirm = (string) $this->request->getPost('password_confirm');
         $role = strtolower(trim($this->request->getPost('role') ?? 'admin'));
 
-        if (empty($name) || empty($username) || empty($email) || empty($password)) {
+        if (empty($name) || empty($username) || empty($email) || empty($password) || empty($passwordConfirm)) {
             return redirect()->back()->withInput()->with('error', 'Semua field wajib diisi.');
         }
 
@@ -83,8 +84,17 @@ class Users extends BaseController
             return redirect()->back()->withInput()->with('error', 'Format email tidak valid.');
         }
 
+        if ($password !== $passwordConfirm) {
+            return redirect()->back()->withInput()->with('error', 'Konfirmasi password tidak cocok.');
+        }
+
         if (strlen($password) < 6) {
             return redirect()->back()->withInput()->with('error', 'Password minimal 6 karakter.');
+        }
+
+        // Regex validasi special character minimal 1 karakter khusus
+        if (!preg_match('/[!@#$%^&*()\-_=+{};:,<.>§~]/', $password)) {
+            return redirect()->back()->withInput()->with('error', 'Password harus mengandung minimal 1 karakter khusus / simbol (contoh: !@#$%^&*).');
         }
 
         if (!in_array($role, ['superadmin', 'admin'], true)) {

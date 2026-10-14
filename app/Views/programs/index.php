@@ -73,10 +73,24 @@
                                     <?= esc($p['slug']) ?>
                                 </td>
                                 <td class="px-4 py-3.5 text-center font-medium">
-                                    <span class="inline-flex items-center gap-1 rounded-md bg-blue-500/10 text-blue-600 dark:text-blue-400 px-2 py-0.5">
-                                        <i data-lucide="users" class="size-3"></i>
-                                        <span><?= $p['enrollments_count'] ?></span>
-                                    </span>
+                                    <?php 
+                                        $maxCap = !empty($p['max_participants']) ? (int)$p['max_participants'] : 0;
+                                        $activeCount = (int)($p['active_participants_count'] ?? 0);
+                                        $remaining = $maxCap > 0 ? max(0, $maxCap - $activeCount) : null;
+                                    ?>
+                                    <div class="flex flex-col items-center gap-1">
+                                        <span class="inline-flex items-center gap-1 rounded-md bg-blue-500/10 text-blue-600 dark:text-blue-400 px-2 py-0.5 text-xs">
+                                            <i data-lucide="users" class="size-3"></i>
+                                            <span><?= $p['enrollments_count'] ?> pendaftar</span>
+                                        </span>
+                                        <?php if ($maxCap > 0): ?>
+                                            <span class="text-[11px] font-semibold <?= $remaining === 0 ? 'text-red-500 font-bold' : ($remaining <= 3 ? 'text-amber-600 dark:text-amber-400' : 'text-emerald-600 dark:text-emerald-400') ?>" title="Sisa Kuota: <?= $remaining ?> dari total <?= $maxCap ?> kapasitas">
+                                                Sisa <?= $remaining ?> <span class="text-muted-foreground font-normal">(dari <?= $maxCap ?>)</span>
+                                            </span>
+                                        <?php else: ?>
+                                            <span class="text-[10px] text-muted-foreground">Unlimited kuota</span>
+                                        <?php endif; ?>
+                                    </div>
                                 </td>
                                 <td class="px-4 py-3.5 text-muted-foreground">
                                     <?= esc($p['duration'] ?? '-') ?>

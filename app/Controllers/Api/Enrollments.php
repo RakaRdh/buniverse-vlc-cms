@@ -105,6 +105,16 @@ class Enrollments extends BaseApiController
             ], $msg, 200);
         }
 
+        // Send confirmation email when new enrollment is created
+        if (!empty($member['email'])) {
+            try {
+                $emailService = new \App\Services\EmailService();
+                $emailService->sendEnrollmentWaitingEmail($member['email'], $member['fullname'] ?? 'Peserta', $program);
+            } catch (\Throwable $e) {
+                log_message('error', 'Gagal kirim waiting email: ' . $e->getMessage());
+            }
+        }
+
         return $this->respondSuccess([
             'enrollment' => $enrollment,
             'program'    => $program

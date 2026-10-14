@@ -52,7 +52,40 @@ class Enrollments extends BaseController
             return redirect()->to('/enrollments')->with('error', 'Status pendaftaran tidak valid.');
         }
 
+        $db = \Config\Database::connect();
+        $db->transStart();
+
+        // Lock row enrollment
+        $enrollment = $db->table('tblprogram_enrollment')->where('id', $id)->get()->getRowArray();
+        if (!$enrollment) {
+            $db->transRollback();
+            return redirect()->to('/enrollments')->with('error', 'Data enrollment tidak ditemukan.');
+        }
+
         $oldStatus = $enrollment['status'];
+        $autoRejectInfo = '';
+
+        // Mitigasi Race Condition jika status diubah ke 'active'
+        if ($newStatus === 'active') {
+            // Lock tabel program dengan FOR UPDATE agar request bersamaan antre (FIFO)
+            $progRow = $db->query("SELECT * FROM tblprogram WHERE id = ? FOR UPDATE", [$enrollment['program_id']])->getRowArray();
+            $maxCap = (int)($progRow['max_participants'] ?? 0);
+
+            if ($maxCap > 0) {
+                // Hitung peserta aktif saat ini (exclude diri sendiri jika sebelumnya sudah active)
+                $activeCount = (int) $db->table('tblprogram_enrollment')
+                    ->select('COUNT(DISTINCT member_id) as total')
+                    ->where('program_id', $enrollment['program_id'])
+                    ->where('id !=', $id)
+                    ->whereIn('status', ['active', 'in_progress'])
+                    ->get()->getRow()->total;
+
+                if ($activeCount >= $maxCap) {
+                    $db->transRollback();
+                    return redirect()->to('/enrollments')->with('error', "Gagal mengubah ke Active: Kuota kelas telah penuh ({$activeCount}/{$maxCap} peserta).");
+                }
+            }
+        }
 
         $updateData = [
             'status' => $newStatus,
@@ -65,6 +98,59 @@ class Enrollments extends BaseController
         }
 
         $this->enrollmentModel->update($id, $updateData);
+
+        // Auto-reject remaining waiting/contacted applicants if quota is reached when setting status to active
+        if ($newStatus === 'active' && isset($progRow)) {
+            $maxCap = (int)($progRow['max_participants'] ?? 0);
+            if ($maxCap > 0) {
+                $currentActiveCount = (int) $db->table('tblprogram_enrollment')
+                    ->select('COUNT(DISTINCT member_id) as total')
+                    ->where('program_id', $enrollment['program_id'])
+                    ->whereIn('status', ['active', 'in_progress'])
+                    ->get()->getRow()->total;
+
+                if ($currentActiveCount >= $maxCap) {
+                    $pendingEnrollments = $this->enrollmentModel
+                        ->where('program_id', $enrollment['program_id'])
+                        ->where('id !=', $id)
+                        ->whereIn('status', ['waiting', 'contacted'])
+                        ->findAll();
+
+                    if (!empty($pendingEnrollments)) {
+                        $rejectedCount = 0;
+                        $emailService = new \App\Services\EmailService();
+                        $programData = $progRow;
+                        $memberModel = new \App\Models\MemberModel();
+
+                        foreach ($pendingEnrollments as $pe) {
+                            $this->enrollmentModel->update($pe['id'], [
+                                'status' => 'rejected',
+                                'notes'  => 'Otomatis ditolak sistem: kuota kelas telah terpenuhi (' . $currentActiveCount . '/' . $maxCap . ' peserta).'
+                            ]);
+                            $rejectedCount++;
+
+                            $peMember = $memberModel->find($pe['member_id']);
+                            if ($peMember && !empty($peMember['email'])) {
+                                $emailService->sendEnrollmentRejectedEmail($peMember['email'], $peMember['fullname'] ?? 'Peserta', $programData);
+                            }
+
+                            ActivityLogModel::log(
+                                'STATUS_CHANGE',
+                                'enrollments',
+                                "Otomatis menolak pendaftaran ID #{$pe['id']} (Member #{$pe['member_id']}) karena kuota kelas penuh ({$currentActiveCount}/{$maxCap})",
+                                (string)$pe['id'],
+                                (int)$pe['member_id'],
+                                $peMember['fullname'] ?? ('Member #' . $pe['member_id'])
+                            );
+                        }
+
+                        $autoRejectInfo = " Kuota kelas telah penuh ({$currentActiveCount}/{$maxCap}). {$rejectedCount} pendaftar waiting/contacted otomatis ditolak.";
+                    }
+                }
+            }
+        }
+
+        $db->transComplete();
 
         // Fetch participant & program names for descriptive audit log & email
         $enrollmentDetails = $this->enrollmentModel->getEnrollments(null, null, null);
@@ -82,62 +168,8 @@ class Enrollments extends BaseController
                 $emailService->sendEnrollmentApprovedEmail($memberEmail, $memberName, $programData);
             } elseif ($newStatus === 'rejected' && $oldStatus !== 'rejected') {
                 $emailService->sendEnrollmentRejectedEmail($memberEmail, $memberName, $programData);
-            }
-        }
-
-        $autoRejectInfo = '';
-
-        // Auto-reject remaining waiting/contacted applicants if quota is reached when setting status to active
-        if ($newStatus === 'active') {
-            $program = $this->programModel->find($enrollment['program_id']);
-            $maxCap = (int)($program['max_participants'] ?? 0);
-
-            if ($maxCap > 0) {
-                $db = \Config\Database::connect();
-                $activeCount = (int) $db->table('tblprogram_enrollment')
-                    ->select('COUNT(DISTINCT member_id) as total')
-                    ->where('program_id', $enrollment['program_id'])
-                    ->whereIn('status', ['active', 'in_progress'])
-                    ->get()->getRow()->total;
-
-                if ($activeCount >= $maxCap) {
-                    $pendingEnrollments = $this->enrollmentModel
-                        ->where('program_id', $enrollment['program_id'])
-                        ->whereIn('status', ['waiting', 'contacted'])
-                        ->findAll();
-
-                    if (!empty($pendingEnrollments)) {
-                        $rejectedCount = 0;
-                        $emailService = new \App\Services\EmailService();
-                        $programData = $program ?: ['name' => $programName];
-
-                        $memberModel = new \App\Models\MemberModel();
-
-                        foreach ($pendingEnrollments as $pe) {
-                            $this->enrollmentModel->update($pe['id'], [
-                                'status' => 'rejected',
-                                'notes'  => 'Otomatis ditolak sistem: kuota kelas telah terpenuhi (' . $activeCount . '/' . $maxCap . ' peserta).'
-                            ]);
-                            $rejectedCount++;
-
-                            $peMember = $memberModel->find($pe['member_id']);
-                            if ($peMember && !empty($peMember['email'])) {
-                                $emailService->sendEnrollmentRejectedEmail($peMember['email'], $peMember['fullname'] ?? 'Peserta', $programData);
-                            }
-
-                            ActivityLogModel::log(
-                                'STATUS_CHANGE',
-                                'enrollments',
-                                "Otomatis menolak pendaftaran ID #{$pe['id']} (Member #{$pe['member_id']}) karena kuota kelas {$programName} penuh ({$activeCount}/{$maxCap})",
-                                (string)$pe['id'],
-                                (int)$pe['member_id'],
-                                $peMember['fullname'] ?? ('Member #' . $pe['member_id'])
-                            );
-                        }
-
-                        $autoRejectInfo = " Kuota kelas telah penuh ({$activeCount}/{$maxCap}). {$rejectedCount} pendaftar tersisa berstatus waiting/contacted otomatis ditolak dan dikirimi email pemberitahuan.";
-                    }
-                }
+            } elseif ($newStatus === 'banned' && $oldStatus !== 'banned') {
+                $emailService->sendEnrollmentBannedEmail($memberEmail, $memberName, $programData);
             }
         }
 
@@ -298,10 +330,16 @@ class Enrollments extends BaseController
             if ($existingEnroll['status'] === 'banned') {
                 return redirect()->to('/enrollments')->with('error', "Peserta {$memberName} saat ini berstatus Banned pada program ini.");
             }
-            // Update to chosen status
-            $this->enrollmentModel->update($existingEnroll['id'], [
-                'status' => $enrollStatus,
-                'notes'  => 'Di-assign / diperbarui manual oleh Admin CMS'
+            if (in_array($existingEnroll['status'], ['waiting', 'contacted', 'active', 'in_progress'], true)) {
+                return redirect()->to('/enrollments')->with('error', "Peserta {$memberName} ({$memberEmail}) sudah terdaftar pada program {$program['name']} dengan status '" . ucfirst($existingEnroll['status']) . "'. Tidak dapat mendaftarkan ulang.");
+            }
+            // Jika sebelumnya rejected atau finished, buat baris pendaftaran baru
+            $this->enrollmentModel->insert([
+                'member_id'   => $memberId,
+                'program_id'  => $programId,
+                'status'      => $enrollStatus,
+                'enrolled_at' => date('Y-m-d H:i:s'),
+                'notes'       => 'Didaftarkan ulang manual oleh Admin CMS'
             ]);
         } else {
             // Insert new enrollment
@@ -314,10 +352,14 @@ class Enrollments extends BaseController
             ]);
         }
 
-        // Send email notifications if status is active
-        if ($enrollStatus === 'active' && !empty($memberEmail)) {
+        // Send email notifications
+        if (!empty($memberEmail)) {
             $emailService = new \App\Services\EmailService();
-            $emailService->sendEnrollmentApprovedEmail($memberEmail, $memberName, $program);
+            if ($enrollStatus === 'active') {
+                $emailService->sendEnrollmentApprovedEmail($memberEmail, $memberName, $program);
+            } elseif ($enrollStatus === 'waiting') {
+                $emailService->sendEnrollmentWaitingEmail($memberEmail, $memberName, $program);
+            }
         }
 
         $this->purgeAllCache();

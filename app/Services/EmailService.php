@@ -88,22 +88,145 @@ class EmailService
     }
 
     /**
+     * Mengirimkan email konfirmasi pendaftaran diterima (Waiting / Antrean Verifikasi)
+     */
+    public function sendEnrollmentWaitingEmail(string $toEmail, string $fullName, array $program): bool
+    {
+        $programName = $program['name'] ?? 'Vocational Learning Center';
+        $duration = $program['duration'] ?? '3 Hari';
+        $schedule = trim($program['schedule_info'] ?? '');
+        $startDate = !empty($program['start_date']) && $program['start_date'] !== '0000-00-00' ? $program['start_date'] : null;
+        $endDate   = !empty($program['end_date']) && $program['end_date'] !== '0000-00-00' ? $program['end_date'] : null;
+
+        if ($startDate && $endDate) {
+            $formattedStart = date('d M Y', strtotime($startDate));
+            $formattedEnd   = date('d M Y', strtotime($endDate));
+            $dateRange = ($formattedStart === $formattedEnd) ? $formattedStart : ($formattedStart . ' - ' . $formattedEnd);
+            $schedule = !empty($schedule) ? $schedule . ' (' . $dateRange . ')' : $dateRange;
+        } elseif ($startDate) {
+            $dateRange = date('d M Y', strtotime($startDate));
+            $schedule = !empty($schedule) ? $schedule . ' (' . $dateRange . ')' : $dateRange;
+        } elseif ($endDate) {
+            $dateRange = date('d M Y', strtotime($endDate));
+            $schedule = !empty($schedule) ? $schedule . ' (s.d. ' . $dateRange . ')' : 's.d. ' . $dateRange;
+        }
+
+        if (empty($schedule)) {
+            $schedule = 'Akan diinformasikan lebih lanjut oleh tim admin';
+        }
+        $price = !empty($program['price']) ? 'Rp ' . number_format((float)$program['price'], 0, ',', '.') : 'Gratis';
+
+        $subject = 'Pendaftaran Diterima: Pelatihan ' . $programName . ' — Datasatu VLC';
+
+        $body = '
+        <!DOCTYPE html>
+        <html>
+        <head>
+            <meta charset="UTF-8">
+            <meta name="viewport" content="width=device-width, initial-scale=1.0">
+            <title>' . esc($subject) . '</title>
+        </head>
+        <body style="margin: 0; padding: 0; background-color: #f8fafc; font-family: -apple-system, BlinkMacSystemFont, \'Segoe UI\', Roboto, Helvetica, Arial, sans-serif; color: #1e293b;">
+            <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0" style="background-color: #f8fafc; padding: 30px 15px;">
+                <tr>
+                    <td align="center">
+                        <table role="presentation" width="100%" max-width="560px" cellspacing="0" cellpadding="0" border="0" style="max-width: 560px; background-color: #ffffff; border-radius: 14px; overflow: hidden; border: 1px solid #e2e8f0; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05);">
+                            <!-- Header (Amber/Warm Theme for Waiting) -->
+                            <tr>
+                                <td style="background-color: #f59e0b; padding: 24px 30px; text-align: left;">
+                                    <h1 style="color: #ffffff; margin: 0; font-size: 20px; font-weight: 800; letter-spacing: -0.5px;">Pendaftaran Diterima!</h1>
+                                    <p style="color: rgba(255,255,255,0.95); margin: 4px 0 0 0; font-size: 12px;">Menunggu Verifikasi &bull; Datasatu Vocational Learning Center</p>
+                                </td>
+                            </tr>
+                            <!-- Content -->
+                            <tr>
+                                <td style="padding: 32px 30px;">
+                                    <h2 style="font-size: 18px; color: #0f172a; margin-top: 0; margin-bottom: 12px; font-weight: 700;">Halo, ' . esc($fullName) . '!</h2>
+                                    <p style="font-size: 14px; line-height: 1.6; color: #475569; margin-bottom: 20px;">
+                                        Pendaftaran Anda untuk mengikuti program pelatihan vokasi <strong>' . esc($programName) . '</strong> telah kami terima dan saat ini sedang berada dalam antrean verifikasi oleh tim admin Datasatu VLC.
+                                    </p>
+
+                                    <!-- Detail Box -->
+                                    <div style="background-color: #f8fafc; border: 1px solid #e2e8f0; border-radius: 10px; padding: 18px 20px; margin-bottom: 24px;">
+                                        <table width="100%" cellspacing="0" cellpadding="0" border="0" style="font-size: 13px;">
+                                            <tr>
+                                                <td style="color: #64748B; padding: 4px 0; width: 120px;">Nama Program</td>
+                                                <td style="color: #0f172a; font-weight: 700; padding: 4px 0;">: ' . esc($programName) . '</td>
+                                            </tr>
+                                            <tr>
+                                                <td style="color: #64748B; padding: 4px 0;">Durasi</td>
+                                                <td style="color: #0f172a; font-weight: 600; padding: 4px 0;">: ' . esc($duration) . '</td>
+                                            </tr>
+                                            <tr>
+                                                <td style="color: #64748B; padding: 4px 0;">Jadwal / Batch</td>
+                                                <td style="color: #0f172a; font-weight: 600; padding: 4px 0;">: ' . esc($schedule) . '</td>
+                                            </tr>
+                                            <tr>
+                                                <td style="color: #64748B; padding: 4px 0;">Investasi Biaya</td>
+                                                <td style="color: #C41E24; font-weight: 700; padding: 4px 0;">: ' . esc($price) . '</td>
+                                            </tr>
+                                        </table>
+                                    </div>
+
+                                    <!-- Info WhatsApp Pembayaran -->
+                                    <div style="background-color: #fffbeb; border: 1px solid #fde68a; border-radius: 10px; padding: 16px 20px; margin-bottom: 24px;">
+                                        <h3 style="color: #92400e; font-size: 13px; margin: 0 0 6px 0; font-weight: 700;">Langkah Selanjutnya:</h3>
+                                        <p style="color: #b45309; font-size: 12px; line-height: 1.6; margin: 0;">
+                                            Tim admin Datasatu VLC akan segera memverifikasi ketersediaan kuota kelas dan menghubungi Anda melalui <strong>WhatsApp</strong> untuk konfirmasi pendaftaran serta petunjuk pembayaran.
+                                        </p>
+                                    </div>
+
+                                    <div style="text-align: center; margin: 28px 0 10px 0;">
+                                        <a href="' . esc($this->frontendBaseUrl) . 'profile" style="display: inline-block; background-color: #C41E24; color: #ffffff; font-size: 13px; font-weight: 700; text-decoration: none; padding: 12px 28px; border-radius: 50px;">
+                                            Pantau Status di Profil Saya
+                                        </a>
+                                    </div>
+                                </td>
+                            </tr>
+                            <!-- Footer -->
+                            <tr>
+                                <td style="background-color: #f8fafc; border-top: 1px solid #e2e8f0; padding: 16px 30px; text-align: center;">
+                                    <p style="font-size: 11px; color: #94a3b8; margin: 0;">
+                                        &copy; ' . date('Y') . ' Datasatu Vocational Learning Center &bull; B-Universe
+                                    </p>
+                                </td>
+                            </tr>
+                        </table>
+                    </td>
+                </tr>
+            </table>
+        </body>
+        </html>';
+
+        return $this->sendMail($toEmail, $subject, $body);
+    }
+
+    /**
      * Mengirimkan email konfirmasi enrollment disetujui (Active)
      */
     public function sendEnrollmentApprovedEmail(string $toEmail, string $fullName, array $program): bool
     {
         $programName = $program['name'] ?? 'Pelatihan Vokasi';
         $duration = $program['duration'] ?? '3 Hari';
-        $schedule = $program['schedule_info'] ?? '';
-        if (!empty($program['start_date']) && !empty($program['end_date'])) {
-            $dateRange = date('d M Y', strtotime($program['start_date'])) . ' - ' . date('d M Y', strtotime($program['end_date']));
+        $schedule = trim($program['schedule_info'] ?? '');
+        $startDate = !empty($program['start_date']) && $program['start_date'] !== '0000-00-00' ? $program['start_date'] : null;
+        $endDate   = !empty($program['end_date']) && $program['end_date'] !== '0000-00-00' ? $program['end_date'] : null;
+
+        if ($startDate && $endDate) {
+            $formattedStart = date('d M Y', strtotime($startDate));
+            $formattedEnd   = date('d M Y', strtotime($endDate));
+            $dateRange = ($formattedStart === $formattedEnd) ? $formattedStart : ($formattedStart . ' - ' . $formattedEnd);
             $schedule = !empty($schedule) ? $schedule . ' (' . $dateRange . ')' : $dateRange;
-        } elseif (!empty($program['start_date'])) {
-            $dateRange = date('d M Y', strtotime($program['start_date']));
+        } elseif ($startDate) {
+            $dateRange = date('d M Y', strtotime($startDate));
             $schedule = !empty($schedule) ? $schedule . ' (' . $dateRange . ')' : $dateRange;
+        } elseif ($endDate) {
+            $dateRange = date('d M Y', strtotime($endDate));
+            $schedule = !empty($schedule) ? $schedule . ' (s.d. ' . $dateRange . ')' : 's.d. ' . $dateRange;
         }
+
         if (empty($schedule)) {
-            $schedule = 'Akan diinformasikan lebih lanjut';
+            $schedule = 'Akan diinformasikan lebih lanjut oleh tim admin';
         }
         $price = !empty($program['price']) ? 'Rp ' . number_format((float)$program['price'], 0, ',', '.') : 'Gratis';
 
@@ -242,6 +365,75 @@ class EmailService
                                     <div style="text-align: center; margin: 26px 0 10px 0;">
                                         <a href="' . esc($coursesUrl) . '" style="display: inline-block; background-color: #C41E24; color: #ffffff; font-size: 13px; font-weight: 700; text-decoration: none; padding: 12px 28px; border-radius: 50px;">
                                             Lihat Pilihan Kelas Lainnya
+                                        </a>
+                                    </div>
+                                </td>
+                            </tr>
+                            <!-- Footer -->
+                            <tr>
+                                <td style="background-color: #f8fafc; border-top: 1px solid #e2e8f0; padding: 16px 30px; text-align: center;">
+                                    <p style="font-size: 11px; color: #94a3b8; margin: 0;">
+                                        &copy; ' . date('Y') . ' Datasatu Vocational Learning Center &bull; B-Universe
+                                    </p>
+                                </td>
+                            </tr>
+                        </table>
+                    </td>
+                </tr>
+            </table>
+        </body>
+        </html>';
+
+        return $this->sendMail($toEmail, $subject, $body);
+    }
+
+    /**
+     * Mengirimkan email pemberitahuan akses program diblokir (Banned)
+     */
+    public function sendEnrollmentBannedEmail(string $toEmail, string $fullName, array $program): bool
+    {
+        $programName = $program['name'] ?? 'Pelatihan Vokasi';
+        $coursesUrl = $this->frontendBaseUrl . '#courses';
+
+        $subject = 'Pemberitahuan Status Program: Pelatihan ' . $programName . ' — Datasatu VLC';
+
+        $body = '
+        <!DOCTYPE html>
+        <html>
+        <head>
+            <meta charset="UTF-8">
+            <meta name="viewport" content="width=device-width, initial-scale=1.0">
+            <title>' . esc($subject) . '</title>
+        </head>
+        <body style="margin: 0; padding: 0; background-color: #f8fafc; font-family: -apple-system, BlinkMacSystemFont, \'Segoe UI\', Roboto, Helvetica, Arial, sans-serif; color: #1e293b;">
+            <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0" style="background-color: #f8fafc; padding: 30px 15px;">
+                <tr>
+                    <td align="center">
+                        <table role="presentation" width="100%" max-width="560px" cellspacing="0" cellpadding="0" border="0" style="max-width: 560px; background-color: #ffffff; border-radius: 14px; overflow: hidden; border: 1px solid #e2e8f0; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05);">
+                            <!-- Header (Dark Red / Banned) -->
+                            <tr>
+                                <td style="background-color: #b91c1c; padding: 24px 30px; text-align: left;">
+                                    <h1 style="color: #ffffff; margin: 0; font-size: 20px; font-weight: 800; letter-spacing: -0.5px;">Pemberitahuan Akses Program</h1>
+                                    <p style="color: rgba(255,255,255,0.9); margin: 4px 0 0 0; font-size: 12px;">Datasatu Vocational Learning Center</p>
+                                </td>
+                            </tr>
+                            <!-- Content -->
+                            <tr>
+                                <td style="padding: 32px 30px;">
+                                    <h2 style="font-size: 18px; color: #0f172a; margin-top: 0; margin-bottom: 12px; font-weight: 700;">Halo, ' . esc($fullName) . '</h2>
+                                    <p style="font-size: 14px; line-height: 1.6; color: #475569; margin-bottom: 18px;">
+                                        Kami menginformasikan bahwa pendaftaran Anda untuk program pelatihan vokasi <strong>' . esc($programName) . '</strong> telah <strong>dinonaktifkan / diblokir</strong> oleh tim administrator.
+                                    </p>
+
+                                    <div style="background-color: #fef2f2; border: 1px solid #fecaca; border-radius: 10px; padding: 16px 20px; margin-bottom: 24px;">
+                                        <p style="font-size: 13px; line-height: 1.6; color: #991b1b; margin: 0;">
+                                            Pemblokiran ini hanya berlaku khusus untuk program <strong>' . esc($programName) . '</strong>. Akun member Datasatu Anda tetap aktif dan Anda tetap dapat melihat serta mendaftar ke pilihan program pelatihan lainnya.
+                                        </p>
+                                    </div>
+
+                                    <div style="text-align: center; margin: 26px 0 10px 0;">
+                                        <a href="' . esc($coursesUrl) . '" style="display: inline-block; background-color: #C41E24; color: #ffffff; font-size: 13px; font-weight: 700; text-decoration: none; padding: 12px 28px; border-radius: 50px;">
+                                            Lihat Program Lainnya
                                         </a>
                                     </div>
                                 </td>

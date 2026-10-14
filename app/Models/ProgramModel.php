@@ -110,7 +110,8 @@ class ProgramModel extends Model
         $builder = $this->db->table('tblprogram p')
             ->select('p.*, 
                       IF(p.modules > 0, p.modules, COUNT(DISTINCT m.id)) as modules_count, 
-                      COUNT(DISTINCT e.id) as enrollments_count')
+                      COUNT(DISTINCT e.id) as enrollments_count,
+                      COUNT(DISTINCT CASE WHEN e.status IN ("active", "in_progress") THEN e.member_id END) as active_participants_count')
             ->join('tblprogram_module m', 'm.program_id = p.id', 'left')
             ->join('tblprogram_enrollment e', 'e.program_id = p.id', 'left')
             ->groupBy('p.id')

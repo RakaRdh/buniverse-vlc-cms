@@ -425,9 +425,9 @@
             const iconBox = document.getElementById('modalIconBox');
 
             if (isBanned) {
-                titleEl.textContent = 'Konfirmasi Pemblokiran (Banned)';
-                alertTextEl.innerHTML = '<strong>Perhatian:</strong> Setelah status diubah menjadi <strong>Banned</strong>, peserta <u>tidak akan bisa lagi mendaftar (assign)</u> pada program pelatihan ini di masa mendatang.';
-                btnEl.textContent = 'Ya, Blokir Peserta';
+                titleEl.textContent = 'Konfirmasi Pemblokiran Program (Banned)';
+                alertTextEl.innerHTML = '<strong>Perhatian (Khusus Program Ini):</strong> Peserta hanya diblokir dari program pelatihan ini (tidak bisa mendaftar ulang pada course ini). Akun member Datasatu milik peserta <u>tetap aktif</u> dan tetap dapat mendaftar ke program/course lainnya.';
+                btnEl.textContent = 'Ya, Blokir Course Ini';
                 btnEl.className = 'px-4 py-2 rounded-lg bg-red-700 hover:bg-red-800 text-white text-xs font-bold shadow-xs transition-colors cursor-pointer';
             } else {
                 titleEl.textContent = 'Konfirmasi Penolakan (Rejected)';
