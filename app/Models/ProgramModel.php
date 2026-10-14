@@ -29,17 +29,17 @@ class ProgramModel extends Model
         'created_by'
     ];
     protected $useTimestamps = true;
-    protected $createdField  = 'created_at';
-    protected $updatedField  = 'updated_at';
+    protected $createdField = 'created_at';
+    protected $updatedField = 'updated_at';
 
     public function getActivePrograms()
     {
         $programs = $this->where('status', 'active')
-                         ->orderBy('id', 'DESC')
-                         ->findAll();
+            ->orderBy('id', 'DESC')
+            ->findAll();
 
         foreach ($programs as &$p) {
-            $manualModules = (!empty($p['modules']) && is_numeric($p['modules']) && (int)$p['modules'] > 0) ? (int)$p['modules'] : 0;
+            $manualModules = (!empty($p['modules']) && is_numeric($p['modules']) && (int) $p['modules'] > 0) ? (int) $p['modules'] : 0;
             if ($manualModules > 0) {
                 $p['modules_count'] = $manualModules;
             } else {
@@ -56,9 +56,9 @@ class ProgramModel extends Model
                 ->whereIn('status', ['active', 'in_progress'])
                 ->get()
                 ->getRow();
-            $activeCount = !empty($activeCountRow) ? (int)$activeCountRow->total : 0;
+            $activeCount = !empty($activeCountRow) ? (int) $activeCountRow->total : 0;
             $p['active_participants_count'] = $activeCount;
-            $maxCap = !empty($p['max_participants']) ? (int)$p['max_participants'] : 0;
+            $maxCap = !empty($p['max_participants']) ? (int) $p['max_participants'] : 0;
             $p['is_full'] = ($maxCap > 0 && $activeCount >= $maxCap);
         }
 
@@ -75,8 +75,8 @@ class ProgramModel extends Model
             return null;
         }
 
-        $manualModules = (!empty($program['modules']) && is_numeric($program['modules']) && (int)$program['modules'] > 0)
-            ? (int)$program['modules']
+        $manualModules = (!empty($program['modules']) && is_numeric($program['modules']) && (int) $program['modules'] > 0)
+            ? (int) $program['modules']
             : 0;
 
         $modules = $this->db->table('tblprogram_module')
@@ -97,9 +97,9 @@ class ProgramModel extends Model
             ->whereIn('status', ['active', 'in_progress'])
             ->get()
             ->getRow();
-        $activeCount = !empty($activeCountRow) ? (int)$activeCountRow->total : 0;
+        $activeCount = !empty($activeCountRow) ? (int) $activeCountRow->total : 0;
         $program['active_participants_count'] = $activeCount;
-        $maxCap = !empty($program['max_participants']) ? (int)$program['max_participants'] : 0;
+        $maxCap = !empty($program['max_participants']) ? (int) $program['max_participants'] : 0;
         $program['is_full'] = ($maxCap > 0 && $activeCount >= $maxCap);
 
         return $program;
@@ -114,6 +114,7 @@ class ProgramModel extends Model
                       COUNT(DISTINCT CASE WHEN e.status IN ("active", "in_progress") THEN e.member_id END) as active_participants_count')
             ->join('tblprogram_module m', 'm.program_id = p.id', 'left')
             ->join('tblprogram_enrollment e', 'e.program_id = p.id', 'left')
+            ->whereIn('e.status', ['active', 'in_progress'])
             ->groupBy('p.id')
             ->orderBy('p.id', 'DESC');
 
